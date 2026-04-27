@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions  Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Customer {
+  id           String        @id @default(cuid())
+  code         String        @unique
+  nama         String
+  noWa         String
+  alamat       String
+  gender       String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  measurements Measurement[]
+  orders       Order[]
+}
+
+model Measurement {
+  id              String      @id @default(cuid())
+  customerId      String
+  judul           String
+  catatan         String?
+  lingkarLeher    Float?
+  lebarBahu       Float?
+  lingkarDada     Float?
+  lingkarPinggang Float?
+  lingkarPanggul  Float?
+  panjangLengan   Float?
+  panjangBaju     Float?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderItems      OrderItem[]
+}
+
+model Order {
+  id              String           @id @default(cuid())
+  code            String           @unique
+  judul           String
+  customerId      String
+  tglMasuk        DateTime
+  tglEstimasi    DateTime
+  jenisPakaian    String?
+  fotoReferensi   String?
+  status          String           @default("Antrean")
+  catatan         String?
+  totalHarga      Float             @default(0)
+  statusBayar     String           @default("Belum Bayar")
+  snapshotNama    String
+  snapshotNoWa    String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  customer        Customer         @relation(fields: [customerId], references: [id])
+  items           OrderItem[]
+  additionalCosts AdditionalCost[]
+  payments        Payment[]
+}
+
+model OrderItem {
+  id            String       @id @default(cuid())
+  orderId       String
+  measurementId String?
+  judulUkuran   String
+  catatan       String?
+  jumlah        Int
+  hargaSatuan   Float
+  subTotal      Float
+  snapshotData  String?
+  order         Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  measurement   Measurement? @relation(fields: [measurementId], references: [id])
+}
+
+model AdditionalCost {
+  id      String @id @default(cuid())
+  orderId String
+  label   String
+  amount  Float
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  orderId   String
+  jumlah    Float
+  metode    String
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
