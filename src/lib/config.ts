@@ -52,6 +52,11 @@ export type Gender = (typeof GENDER)[number];
 
 export const MEASUREMENT_KATEGORI = ["Atasan", "Bawahan", "Standar"] as const;
 export type MeasurementKategori = (typeof MEASUREMENT_KATEGORI)[number];
+export const KATEGORI = {
+  ATASAN: MEASUREMENT_KATEGORI[0],
+  BAWAHAN: MEASUREMENT_KATEGORI[1],
+  STANDAR: MEASUREMENT_KATEGORI[2],
+} as const;
 
 export const STANDAR_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "Custom"] as const;
 
@@ -127,6 +132,9 @@ export const VALIDATION = {
     avatarMaxBytes: 800 * 1024, // 800 KB
     fotoReferensiMaxBytes: 1024 * 1024, // 1 MB
     allowedImageTypes: ["image/jpeg", "image/png", "image/webp"] as const,
+    get allowedAcceptString() {
+      return this.allowedImageTypes.join(",");
+    },
     allowedExtensionsLabel: "JPG / PNG / WebP",
   },
   session: {

@@ -13,6 +13,7 @@ import { useToast } from "./Toast";
 import {
   ATASAN_FIELDS,
   BAWAHAN_FIELDS,
+  KATEGORI,
   MEASUREMENT_KATEGORI,
   STANDAR_SIZES,
 } from "@/lib/config";
@@ -56,7 +57,7 @@ export function UkuranModal({
   const [pending, startTransition] = useTransition();
   const [data, setData] = useState<UkuranData>({
     judul: "",
-    kategori: "Atasan",
+    kategori: KATEGORI.ATASAN,
   });
 
   useEffect(() => {
@@ -64,7 +65,7 @@ export function UkuranModal({
       setData(
         initial ?? {
           judul: "",
-          kategori: "Atasan",
+          kategori: KATEGORI.ATASAN,
         }
       );
     }
@@ -185,13 +186,13 @@ export function UkuranModal({
             </div>
           </div>
 
-          {(data.kategori === "Atasan" || data.kategori === "Bawahan") && (
+          {(data.kategori === KATEGORI.ATASAN || data.kategori === KATEGORI.BAWAHAN) && (
             <div>
               <p className="text-sm font-semibold text-ink-900 mb-3">
-                {data.kategori === "Atasan" ? "Ukuran Atasan (cm)" : "Ukuran Bawahan (cm)"}
+                Ukuran {data.kategori} (cm)
               </p>
               <div className="grid md:grid-cols-3 gap-3">
-                {(data.kategori === "Atasan" ? ATASAN_FIELDS : BAWAHAN_FIELDS).map(
+                {(data.kategori === KATEGORI.ATASAN ? ATASAN_FIELDS : BAWAHAN_FIELDS).map(
                   ([key, label]) => (
                     <NumField
                       key={key}
@@ -206,7 +207,7 @@ export function UkuranModal({
             </div>
           )}
 
-          {data.kategori === "Standar" && (
+          {data.kategori === KATEGORI.STANDAR && (
             <div>
               <p className="text-sm font-semibold text-ink-900 mb-3">Ukuran Standar</p>
               <div className="flex flex-wrap gap-2">

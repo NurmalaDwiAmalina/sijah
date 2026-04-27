@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { DashboardShell } from "@/components/DashboardShell";
 import { PelangganForm } from "@/components/PelangganForm";
 import { prisma } from "@/lib/db";
+import type { MeasurementKategori } from "@/lib/config";
 import { ChevronRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +41,7 @@ export default async function PelangganDetailPage({
           gender: pelanggan.gender,
           measurements: pelanggan.measurements.map((m) => ({
             ...m,
-            kategori: m.kategori as "Atasan" | "Bawahan" | "Standar",
+            kategori: m.kategori as MeasurementKategori,
           })),
         }}
       />

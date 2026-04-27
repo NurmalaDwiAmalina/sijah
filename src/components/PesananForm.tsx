@@ -380,7 +380,7 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
           <input
             ref={fotoRef}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept={VALIDATION.upload.allowedAcceptString}
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
