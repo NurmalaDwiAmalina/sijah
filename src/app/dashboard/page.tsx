@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { DashboardShell } from "@/components/DashboardShell";
@@ -39,8 +40,10 @@ export default async function DashboardPage({
     ],
   };
 
-  const [user, orders, payments, allOrders] = await Promise.all([
-    getCurrentUser(),
+  const user = await getCurrentUser();
+  if (!user) redirect("/api/auth/clear");
+
+  const [orders, payments, allOrders] = await Promise.all([
     prisma.order.findMany({
       where: filter,
       orderBy: { createdAt: "desc" },
@@ -78,7 +81,7 @@ export default async function DashboardPage({
     "Created at": formatDate(p.createdAt),
   }));
 
-  const greetingName = user?.username ?? BRAND.defaultGreetingName;
+  const greetingName = user.username;
 
   return (
     <DashboardShell>
