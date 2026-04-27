@@ -18,7 +18,7 @@ export function PembayaranEditForm({
   code: string;
   order: { code: string; pelanggan: string; totalHarga: number };
   totalDibayarLain: number;
-  initial: { jumlah: number; metode: "Tunai" | "Transfer"; catatan: string };
+  initial: { jumlah: number; metode: PaymentMethod; catatan: string };
 }) {
   const router = useRouter();
   const toast = useToast();

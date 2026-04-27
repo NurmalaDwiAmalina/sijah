@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { nextCustomerCode } from "@/lib/code";
 import { requireUser } from "@/lib/auth";
 
-import type { MeasurementKategori } from "@/lib/config";
+import type { Gender, MeasurementKategori } from "@/lib/config";
 
 export type Kategori = MeasurementKategori;
 
@@ -51,7 +51,7 @@ export async function createPelangganAction(input: {
   nama: string;
   noWa: string;
   alamat: string;
-  gender: "Laki-laki" | "Perempuan";
+  gender: Gender;
   ukuran: UkuranInput[];
 }) {
   await requireUser();
@@ -85,7 +85,7 @@ export async function updatePelangganAction(
     nama: string;
     noWa: string;
     alamat: string;
-    gender: "Laki-laki" | "Perempuan";
+    gender: Gender;
   }
 ) {
   await requireUser();

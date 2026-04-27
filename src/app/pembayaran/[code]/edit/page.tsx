@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { DashboardShell } from "@/components/DashboardShell";
 import { ChevronRight } from "lucide-react";
 import { PembayaranEditForm } from "@/components/PembayaranEditForm";
+import type { PaymentMethod } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export default async function PembayaranEditPage({
         totalDibayarLain={totalDibayarLain}
         initial={{
           jumlah: p.jumlah,
-          metode: p.metode as "Tunai" | "Transfer",
+          metode: p.metode as PaymentMethod,
           catatan: p.catatan ?? "",
         }}
       />

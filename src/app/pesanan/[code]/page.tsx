@@ -6,6 +6,7 @@ import { StatusDropdown } from "@/components/StatusDropdown";
 import { PesananDetailActions } from "@/components/PesananDetailActions";
 import { ChevronRight, ImageIcon } from "lucide-react";
 import { formatRupiah, formatDate } from "@/lib/format";
+import { PAYMENT_STATUS_BADGE } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -132,11 +133,9 @@ export default async function PesananDetailPage({
             <span
               className={
                 "rounded-md px-3 py-1.5 text-sm font-semibold " +
-                (order.statusBayar === "Lunas"
-                  ? "bg-[#DEFFA7] text-[#019537]"
-                  : order.statusBayar === "DP"
-                  ? "bg-[#FFEDB1] text-[#FFB62E]"
-                  : "bg-[#FFD1C9] text-[#FF4B4B]")
+                (PAYMENT_STATUS_BADGE[
+                  order.statusBayar as keyof typeof PAYMENT_STATUS_BADGE
+                ] ?? "bg-ink-100 text-ink-700")
               }
             >
               {order.statusBayar}

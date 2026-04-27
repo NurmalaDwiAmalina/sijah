@@ -7,6 +7,7 @@ import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { ExportButton } from "@/components/ExportButton";
 import { PelangganRowActions } from "@/components/PelangganRowActions";
 import { formatDate } from "@/lib/format";
+import { GENDER } from "@/lib/config";
 import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -72,10 +73,7 @@ export default async function PelangganPage({
             {
               key: "gender",
               label: "Gender",
-              options: [
-                { value: "Laki-laki", label: "Laki-laki" },
-                { value: "Perempuan", label: "Perempuan" },
-              ],
+              options: GENDER.map((g) => ({ value: g, label: g })),
             },
           ]}
         />

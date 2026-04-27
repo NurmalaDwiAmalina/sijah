@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { DashboardShell } from "@/components/DashboardShell";
 import { ChevronRight } from "lucide-react";
 import { formatRupiah, formatDate } from "@/lib/format";
+import { PAYMENT_METHOD_BADGE, PAYMENT_STATUS_BADGE } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -49,9 +50,8 @@ export default async function PembayaranDetailPage({
             <span
               className={
                 "rounded-md px-2.5 py-1 text-xs font-medium " +
-                (p.metode === "Tunai"
-                  ? "bg-[#FFEDB1] text-[#FFB62E]"
-                  : "bg-[#DAEEFF] text-[#008BFF]")
+                (PAYMENT_METHOD_BADGE[p.metode as keyof typeof PAYMENT_METHOD_BADGE] ??
+                  "bg-ink-100 text-ink-700")
               }
             >
               {p.metode}
@@ -81,11 +81,9 @@ export default async function PembayaranDetailPage({
             <span
               className={
                 "rounded-md px-2.5 py-1 text-xs font-medium " +
-                (p.order.statusBayar === "Lunas"
-                  ? "bg-[#DEFFA7] text-[#019537]"
-                  : p.order.statusBayar === "DP"
-                  ? "bg-[#FFEDB1] text-[#FFB62E]"
-                  : "bg-[#FFD1C9] text-[#FF4B4B]")
+                (PAYMENT_STATUS_BADGE[
+                  p.order.statusBayar as keyof typeof PAYMENT_STATUS_BADGE
+                ] ?? "bg-ink-100 text-ink-700")
               }
             >
               {p.order.statusBayar}

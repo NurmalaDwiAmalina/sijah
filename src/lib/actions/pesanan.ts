@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { nextOrderCode } from "@/lib/code";
 import { requireUser } from "@/lib/auth";
 import { parseDate } from "@/lib/format";
+import { ORDER_STATUS, PAYMENT_STATUS } from "@/lib/config";
 
 export type ItemInput = {
   measurementId: string;
@@ -36,8 +37,8 @@ export async function createPesananAction(input: {
   if (input.items.length === 0)
     return { error: "Minimal pilih satu ukuran" };
 
-  const initialStatus = input.status ?? "Antrean";
-  const initialStatusBayar = input.statusBayar ?? "Belum Bayar";
+  const initialStatus = input.status ?? ORDER_STATUS[0]; // default: Antrean
+  const initialStatusBayar = input.statusBayar ?? PAYMENT_STATUS[0]; // default: Belum Bayar
 
   const customer = await prisma.customer.findUnique({
     where: { code: input.customerCode },

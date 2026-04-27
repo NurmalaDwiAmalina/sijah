@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { nextPaymentCode } from "@/lib/code";
 import { requireUser } from "@/lib/auth";
+import { PAYMENT_STATUS, type PaymentMethod, type PaymentStatus } from "@/lib/config";
 
 async function recalcOrderStatusBayar(orderId: string) {
   const [order, payments] = await Promise.all([
@@ -13,16 +14,17 @@ async function recalcOrderStatusBayar(orderId: string) {
   ]);
   if (!order) return;
   const total = payments.reduce((a, b) => a + b.jumlah, 0);
-  let statusBayar: "Belum Bayar" | "DP" | "Lunas" = "Belum Bayar";
-  if (total >= order.totalHarga) statusBayar = "Lunas";
-  else if (total > 0) statusBayar = "DP";
+  const [BELUM, DP, LUNAS] = PAYMENT_STATUS;
+  let statusBayar: PaymentStatus = BELUM;
+  if (total >= order.totalHarga) statusBayar = LUNAS;
+  else if (total > 0) statusBayar = DP;
   await prisma.order.update({ where: { id: orderId }, data: { statusBayar } });
 }
 
 export async function createPembayaranAction(input: {
   orderCode: string;
   jumlah: number;
-  metode: "Tunai" | "Transfer";
+  metode: PaymentMethod;
   catatan?: string;
 }) {
   await requireUser();
@@ -55,7 +57,7 @@ export async function createPembayaranAction(input: {
 
 export async function updatePembayaranAction(
   code: string,
-  input: { jumlah: number; metode: "Tunai" | "Transfer"; catatan?: string }
+  input: { jumlah: number; metode: PaymentMethod; catatan?: string }
 ) {
   await requireUser();
   const p = await prisma.payment.findUnique({ where: { code } });

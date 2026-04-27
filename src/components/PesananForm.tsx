@@ -38,8 +38,8 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
   const [tglMasuk, setTglMasuk] = useState("");
   const [tglEstimasi, setTglEstimasi] = useState("");
   const [catatan, setCatatan] = useState("");
-  const [status, setStatus] = useState("Antrean");
-  const [statusBayar, setStatusBayar] = useState("Belum Bayar");
+  const [status, setStatus] = useState<string>(ORDER_STATUS[0]);
+  const [statusBayar, setStatusBayar] = useState<string>(PAYMENT_STATUS[0]);
   const [foto, setFoto] = useState<string | null>(null);
   const [fotoErr, setFotoErr] = useState<string | null>(null);
   const fotoRef = useRef<HTMLInputElement>(null);

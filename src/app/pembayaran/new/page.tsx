@@ -3,12 +3,15 @@ import { prisma } from "@/lib/db";
 import { DashboardShell } from "@/components/DashboardShell";
 import { ChevronRight } from "lucide-react";
 import { PembayaranForm } from "@/components/PembayaranForm";
+import { PAYMENT_STATUS } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
+const STATUS_LUNAS = PAYMENT_STATUS[2]; // "Lunas"
+
 export default async function PembayaranNewPage() {
   const orders = await prisma.order.findMany({
-    where: { statusBayar: { not: "Lunas" } },
+    where: { statusBayar: { not: STATUS_LUNAS } },
     orderBy: { createdAt: "desc" },
     include: {
       items: true,

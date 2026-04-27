@@ -14,7 +14,7 @@ import { formatDate } from "@/lib/format";
 import { UkuranModal, type UkuranData } from "./UkuranModal";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
-import { GENDER } from "@/lib/config";
+import { GENDER, type Gender } from "@/lib/config";
 
 type UkuranItem = UkuranData & {
   id?: string;
@@ -71,7 +71,7 @@ export function PelangganForm({
           nama,
           noWa,
           alamat,
-          gender: gender as "Laki-laki" | "Perempuan",
+          gender: gender as Gender,
           ukuran: ukuranLocal,
         });
         if (res?.error) toast.error("Gagal", res.error);
@@ -82,7 +82,7 @@ export function PelangganForm({
           nama,
           noWa,
           alamat,
-          gender: gender as "Laki-laki" | "Perempuan",
+          gender: gender as Gender,
         });
         if (res?.error) toast.error("Gagal", res.error);
         else {
