@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Search, User } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -22,18 +23,22 @@ export async function Topbar({
             />
           </div>
         )}
-        <a
+        <Link
           href="/profile"
-          className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-200 to-amber-400 ring-2 ring-white shadow-sm overflow-hidden grid place-items-center"
-          title={user?.username ?? "Profile"}
+          title={`${user?.username ?? "Profile"} — Buka profile`}
+          className="group relative h-10 w-10 rounded-full bg-gradient-to-br from-amber-200 to-amber-400 ring-2 ring-white shadow-sm overflow-hidden grid place-items-center cursor-pointer hover:ring-brand-600 hover:scale-105 transition"
         >
           {user?.avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.avatar} alt={user.username} className="h-full w-full object-cover" />
+            <img
+              src={user.avatar}
+              alt={user.username}
+              className="h-full w-full object-cover pointer-events-none"
+            />
           ) : (
-            <User className="h-5 w-5 text-white/70" />
+            <User className="h-5 w-5 text-white/70 pointer-events-none" />
           )}
-        </a>
+        </Link>
       </div>
     </header>
   );
