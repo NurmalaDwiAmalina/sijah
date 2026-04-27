@@ -2,28 +2,54 @@ import { prisma } from "@/lib/db";
 import { DashboardShell } from "@/components/DashboardShell";
 import { Topbar } from "@/components/Topbar";
 import { DonutChart } from "@/components/DonutChart";
+import { ExportButton } from "@/components/ExportButton";
+import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { formatRupiah, formatDate } from "@/lib/format";
-import { DollarSign, Wallet, ShoppingBasket, Download, SlidersHorizontal } from "lucide-react";
+import { DollarSign, Wallet, ShoppingBasket } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_COLORS: Record<string, string> = {
-  Antrean: "#868686",
-  "Potong Kain": "#008BFF",
-  Dijahit: "#FFB62E",
-  Fitting: "#0FD859",
-  Selesai: "#17D55C",
-  Diambil: "#019537",
-  Dibatalkan: "#FF4B4B",
-};
+const STATUS_DEFS = [
+  { label: "Antrean", color: "#868686" },
+  { label: "Potong Kain", color: "#008BFF" },
+  { label: "Dijahit", color: "#FFB62E" },
+  { label: "Fitting", color: "#0FD859" },
+  { label: "Selesai", color: "#17D55C" },
+  { label: "Diambil", color: "#019537" },
+  { label: "Dibatalkan", color: "#FF4B4B" },
+];
 
-export default async function DashboardPage() {
-  const [orders, payments] = await Promise.all([
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { status?: string; q?: string };
+}) {
+  const status = searchParams.status;
+  const q = searchParams.q?.trim();
+
+  const filter = {
+    AND: [
+      status ? { status } : {},
+      q
+        ? {
+            OR: [
+              { judul: { contains: q, mode: "insensitive" as const } },
+              { code: { contains: q, mode: "insensitive" as const } },
+              { snapshotNama: { contains: q, mode: "insensitive" as const } },
+            ],
+          }
+        : {},
+    ],
+  };
+
+  const [orders, payments, allOrders] = await Promise.all([
     prisma.order.findMany({
+      where: filter,
       orderBy: { createdAt: "desc" },
       include: { payments: true },
     }),
     prisma.payment.findMany(),
+    prisma.order.findMany({ select: { status: true } }),
   ]);
 
   const totalRevenue = payments.reduce((a, b) => a + b.jumlah, 0);
@@ -31,18 +57,27 @@ export default async function DashboardPage() {
     const dibayar = o.payments.reduce((x, p) => x + p.jumlah, 0);
     return a + Math.max(0, o.totalHarga - dibayar);
   }, 0);
-
   const totalPesanan = orders.length;
 
   const statusCounts: Record<string, number> = {};
-  for (const o of orders) {
-    statusCounts[o.status] = (statusCounts[o.status] ?? 0) + 1;
-  }
-  const statusOverview = Object.entries(statusCounts).map(([label, count]) => ({
-    label,
-    count,
-    percent: totalPesanan ? (count / totalPesanan) * 100 : 0,
-    color: STATUS_COLORS[label] ?? "#868686",
+  for (const o of allOrders) statusCounts[o.status] = (statusCounts[o.status] ?? 0) + 1;
+  const totalAll = allOrders.length;
+  const statusOverview = STATUS_DEFS.map((d) => ({
+    label: d.label,
+    color: d.color,
+    count: statusCounts[d.label] ?? 0,
+    percent: totalAll ? ((statusCounts[d.label] ?? 0) / totalAll) * 100 : 0,
+  }));
+
+  const csvRows = orders.map((p) => ({
+    ID: p.code,
+    "Nama Pesanan": p.judul,
+    "Nama Pelanggan": p.snapshotNama,
+    Deadline: formatDate(p.tglEstimasi),
+    "Total Harga": p.totalHarga,
+    Status: p.status,
+    "Status Bayar": p.statusBayar,
+    "Created at": formatDate(p.createdAt),
   }));
 
   return (
@@ -52,12 +87,17 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl font-bold text-ink-900">Dashboard Penjualan</h2>
         <div className="flex items-center gap-3">
-          <button className="btn-secondary !py-2.5 !px-4">
-            <Download className="h-4 w-4" /> Ekspor
-          </button>
-          <button className="btn-primary !py-2.5 !px-4">
-            <SlidersHorizontal className="h-4 w-4" /> Filter
-          </button>
+          <ExportButton rows={csvRows} filename="dashboard-pesanan" />
+          <SearchFilterBar
+            searchPlaceholder="Cari pesanan..."
+            filters={[
+              {
+                key: "status",
+                label: "Status Pesanan",
+                options: STATUS_DEFS.map((s) => ({ value: s.label, label: s.label })),
+              },
+            ]}
+          />
         </div>
       </div>
 
@@ -78,39 +118,33 @@ export default async function DashboardPage() {
           icon={<ShoppingBasket className="h-5 w-5 text-brand-600" />}
           label="Total Pesanan"
           value={`${totalPesanan} Pesanan`}
-          caption="Semua Total Pesanan"
+          caption={status ? `Status: ${status}` : "Semua Total Pesanan"}
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="card p-6 lg:col-span-1">
           <h3 className="text-lg font-bold text-ink-900 mb-4">Status Pesanan Overview</h3>
-          {statusOverview.length === 0 ? (
-            <p className="text-sm text-ink-500">Belum ada data pesanan</p>
-          ) : (
-            <>
-              <ul className="space-y-2 mb-6">
-                {statusOverview.map((s) => (
-                  <li key={s.label} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-ink-700">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ background: s.color }}
-                      />
-                      {s.label}
-                    </div>
-                    <div className="text-ink-700">
-                      <span className="mr-3">{s.count}</span>
-                      <span className="text-ink-500">{s.percent.toFixed(2)}%</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex justify-center">
-                <DonutChart data={statusOverview} total={totalPesanan} />
-              </div>
-            </>
-          )}
+          <ul className="space-y-2 mb-6">
+            {statusOverview.map((s) => (
+              <li key={s.label} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2 text-ink-700">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
+                  {s.label}
+                </div>
+                <div className="text-ink-700">
+                  <span className="mr-3">{s.count}</span>
+                  <span className="text-ink-500">{s.percent.toFixed(2)}%</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="flex justify-center">
+            <DonutChart
+              data={statusOverview.filter((s) => s.count > 0)}
+              total={totalAll}
+            />
+          </div>
         </div>
 
         <div className="card p-6 lg:col-span-2">
@@ -165,9 +199,7 @@ function StatCard({
   return (
     <div className="card p-5">
       <div className="flex items-start gap-3">
-        <div className="h-10 w-10 rounded-full bg-brand-100 grid place-items-center">
-          {icon}
-        </div>
+        <div className="h-10 w-10 rounded-full bg-brand-100 grid place-items-center">{icon}</div>
         <p className="font-semibold text-ink-700 whitespace-pre-line">{label}</p>
       </div>
       <div className="mt-4">
@@ -179,11 +211,7 @@ function StatCard({
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return (
-    <th className="text-left font-medium px-3 py-3 first:rounded-l-lg last:rounded-r-lg whitespace-nowrap">
-      {children}
-    </th>
-  );
+  return <th className="text-left font-medium px-3 py-3 first:rounded-l-lg last:rounded-r-lg whitespace-nowrap">{children}</th>;
 }
 function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <td className={"px-3 py-3.5 text-ink-700 align-top " + className}>{children}</td>;

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { Suspense, useEffect, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChevronDown, Wallet } from "lucide-react";
 import { createPembayaranAction } from "@/lib/actions/pembayaran";
 import { formatRupiah } from "@/lib/format";
@@ -15,11 +16,28 @@ type OrderOption = {
   biayaTambahan: { label: string; amount: number }[];
 };
 
-export function PembayaranForm({ orders }: { orders: OrderOption[] }) {
-  const [orderCode, setOrderCode] = useState("");
+export function PembayaranForm(props: { orders: OrderOption[] }) {
+  return (
+    <Suspense fallback={null}>
+      <PembayaranFormInner {...props} />
+    </Suspense>
+  );
+}
+
+function PembayaranFormInner({ orders }: { orders: OrderOption[] }) {
+  const sp = useSearchParams();
+  const initialCode = sp.get("orderCode") ?? "";
+  const [orderCode, setOrderCode] = useState(initialCode);
+
+  useEffect(() => {
+    if (initialCode && orders.some((o) => o.code === initialCode)) {
+      setOrderCode(initialCode);
+    }
+  }, [initialCode, orders]);
   const [open, setOpen] = useState(false);
   const [bayar, setBayar] = useState<number>(0);
   const [metode, setMetode] = useState<"Tunai" | "Transfer" | null>(null);
+  const [catatan, setCatatan] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -41,6 +59,7 @@ export function PembayaranForm({ orders }: { orders: OrderOption[] }) {
         orderCode,
         jumlah: bayar,
         metode: metode!,
+        catatan,
       });
       if (res?.error) setError(res.error);
     });

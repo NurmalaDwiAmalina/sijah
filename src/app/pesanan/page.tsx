@@ -5,9 +5,8 @@ import { Topbar } from "@/components/Topbar";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { ExportButton } from "@/components/ExportButton";
 import { StatusDropdown } from "@/components/StatusDropdown";
-import { RowActions } from "@/components/RowActions";
+import { PesananRowActions } from "@/components/PesananRowActions";
 import { formatRupiah, formatDate } from "@/lib/format";
-import { deletePesananAction } from "@/lib/actions/pesanan";
 import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -22,18 +21,22 @@ const STATUS_OPTIONS = [
   "Dibatalkan",
 ];
 
+const STATUS_BAYAR_OPTIONS = ["Belum Bayar", "DP", "Lunas"];
+
 export default async function PesananPage({
   searchParams,
 }: {
-  searchParams: { q?: string; status?: string };
+  searchParams: { q?: string; status?: string; statusBayar?: string };
 }) {
   const q = searchParams.q?.trim();
   const status = searchParams.status;
+  const statusBayar = searchParams.statusBayar;
 
   const list = await prisma.order.findMany({
     where: {
       AND: [
         status ? { status } : {},
+        statusBayar ? { statusBayar } : {},
         q
           ? {
               OR: [
@@ -85,6 +88,11 @@ export default async function PesananPage({
               label: "Status Pesanan",
               options: STATUS_OPTIONS.map((s) => ({ value: s, label: s })),
             },
+            {
+              key: "statusBayar",
+              label: "Status Bayar",
+              options: STATUS_BAYAR_OPTIONS.map((s) => ({ value: s, label: s })),
+            },
           ]}
         />
       </div>
@@ -92,7 +100,7 @@ export default async function PesananPage({
       {list.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-ink-500">
-            {q || status ? "Tidak ada hasil." : "Belum ada pesanan."}
+            {q || status || statusBayar ? "Tidak ada hasil." : "Belum ada pesanan."}
           </p>
         </div>
       ) : (
@@ -106,15 +114,20 @@ export default async function PesananPage({
                 <Th>Nama Pesanan</Th>
                 <Th>Nama Pelanggan</Th>
                 <Th>Deadline</Th>
-                <Th>Total Harga</Th>
+                <Th>Total</Th>
                 <Th>Status</Th>
+                <Th>Bayar</Th>
                 <Th>Action</Th>
               </tr>
             </thead>
             <tbody>
               {list.map((p) => (
                 <tr key={p.id} className="border-b border-ink-100 last:border-0">
-                  <Td>{p.code}</Td>
+                  <Td>
+                    <Link href={`/pesanan/${p.code}`} className="hover:text-brand-600">
+                      {p.code}
+                    </Link>
+                  </Td>
                   <Td>{formatDate(p.createdAt)}</Td>
                   <Td>{formatDate(p.updatedAt)}</Td>
                   <Td className="max-w-[220px]">{p.judul}</Td>
@@ -125,11 +138,21 @@ export default async function PesananPage({
                     <StatusDropdown code={p.code} current={p.status} />
                   </Td>
                   <Td>
-                    <RowActions
-                      detailHref={`/pesanan`}
-                      deleteAction={deletePesananAction.bind(null, p.code)}
-                      deleteConfirm={`Hapus pesanan ${p.code}?`}
-                    />
+                    <span
+                      className={
+                        "rounded-md px-2.5 py-1 text-xs font-medium " +
+                        (p.statusBayar === "Lunas"
+                          ? "bg-[#DEFFA7] text-[#019537]"
+                          : p.statusBayar === "DP"
+                          ? "bg-[#FFEDB1] text-[#FFB62E]"
+                          : "bg-[#FFD1C9] text-[#FF4B4B]")
+                      }
+                    >
+                      {p.statusBayar}
+                    </span>
+                  </Td>
+                  <Td>
+                    <PesananRowActions code={p.code} judul={p.judul} />
                   </Td>
                 </tr>
               ))}

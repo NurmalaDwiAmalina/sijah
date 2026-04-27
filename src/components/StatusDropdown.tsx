@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect } from "react";
+import { useTransition } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { updateStatusPesananAction } from "@/lib/actions/pesanan";
+import { Popover } from "./Popover";
+import { useToast } from "./Toast";
 import { cn } from "@/lib/cn";
 
 const STATUS_LIST = [
@@ -34,65 +36,60 @@ export function StatusDropdown({
   current: string;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const toast = useToast();
   const [pending, startTransition] = useTransition();
-  const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
-  }, []);
-
-  function pick(status: string) {
-    setOpen(false);
+  function pick(status: string, close: () => void) {
+    close();
     if (status === current) return;
     startTransition(async () => {
-      await updateStatusPesananAction(code, status);
-      router.refresh();
+      const res = await updateStatusPesananAction(code, status);
+      if (res?.ok) {
+        toast.success("Status diperbarui", `${code} → ${status}`);
+        router.refresh();
+      }
     });
   }
 
   return (
-    <div ref={ref} className="relative inline-block">
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((o) => !o);
-        }}
-        disabled={pending}
-        className={cn(
-          "inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium hover:brightness-95 transition",
-          palette[current] ?? "bg-ink-100 text-ink-700"
-        )}
-      >
-        {pending ? "..." : current}
-        <ChevronDown className="h-3 w-3 opacity-70" />
-      </button>
-      {open && (
-        <ul className="absolute z-20 mt-1 w-44 rounded-xl border border-ink-200 bg-white shadow-lg overflow-hidden">
+    <Popover
+      align="left"
+      width={180}
+      trigger={({ onClick, ref }) => (
+        <button
+          ref={ref}
+          type="button"
+          onClick={onClick}
+          disabled={pending}
+          className={cn(
+            "inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium hover:brightness-95 transition",
+            palette[current] ?? "bg-ink-100 text-ink-700"
+          )}
+        >
+          {pending ? "..." : current}
+          <ChevronDown className="h-3 w-3 opacity-70" />
+        </button>
+      )}
+    >
+      {(close) => (
+        <ul>
           {STATUS_LIST.map((s) => (
             <li key={s}>
               <button
                 type="button"
-                onClick={() => pick(s)}
+                onClick={() => pick(s, close)}
                 className={cn(
                   "w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-brand-50",
                   s === current ? "bg-brand-50/60 text-brand-700 font-semibold" : "text-ink-700"
                 )}
               >
-                <span className="flex items-center gap-2">
-                  <span className={cn("inline-block rounded px-1.5 py-0.5", palette[s])}>{s}</span>
-                </span>
+                <span className={cn("inline-block rounded px-1.5 py-0.5", palette[s])}>{s}</span>
                 {s === current && <Check className="h-3.5 w-3.5 text-brand-600" />}
               </button>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </Popover>
   );
 }

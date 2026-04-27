@@ -82,7 +82,7 @@ export default function LoginPage() {
             Simpan Password
           </label>
           <Link
-            href="/update-password"
+            href="/forgot-password"
             className="text-sm font-medium text-brand-600 hover:underline"
           >
             Forgot Password?

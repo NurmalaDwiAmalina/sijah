@@ -6,10 +6,44 @@ import { prisma } from "@/lib/db";
 import { nextCustomerCode } from "@/lib/code";
 import { requireUser } from "@/lib/auth";
 
+export type Kategori = "Atasan" | "Bawahan" | "Standar";
+
 export type UkuranInput = {
   judul: string;
+  kategori: Kategori;
   catatan?: string;
+  // Atasan
+  lingkarLeher?: number;
+  lebarBahu?: number;
+  lingkarDada?: number;
+  lingkarPinggang?: number;
+  panjangLengan?: number;
+  panjangBaju?: number;
+  // Bawahan
+  lingkarPinggul?: number;
+  lingkarPaha?: number;
+  panjangCelana?: number;
+  // Standar
+  ukuranStandar?: string;
 };
+
+function cleanUkuran(u: UkuranInput) {
+  return {
+    judul: u.judul.trim(),
+    kategori: u.kategori,
+    catatan: u.catatan?.trim() || null,
+    lingkarLeher: u.lingkarLeher ?? null,
+    lebarBahu: u.lebarBahu ?? null,
+    lingkarDada: u.lingkarDada ?? null,
+    lingkarPinggang: u.lingkarPinggang ?? null,
+    panjangLengan: u.panjangLengan ?? null,
+    panjangBaju: u.panjangBaju ?? null,
+    lingkarPinggul: u.lingkarPinggul ?? null,
+    lingkarPaha: u.lingkarPaha ?? null,
+    panjangCelana: u.panjangCelana ?? null,
+    ukuranStandar: u.ukuranStandar?.trim() || null,
+  };
+}
 
 export async function createPelangganAction(input: {
   nama: string;
@@ -34,12 +68,7 @@ export async function createPelangganAction(input: {
       alamat: input.alamat.trim(),
       gender: input.gender,
       measurements: {
-        create: input.ukuran
-          .filter((u) => u.judul.trim())
-          .map((u) => ({
-            judul: u.judul.trim(),
-            catatan: u.catatan?.trim() || null,
-          })),
+        create: input.ukuran.filter((u) => u.judul.trim()).map(cleanUkuran),
       },
     },
   });
@@ -72,7 +101,7 @@ export async function updatePelangganAction(
   });
   revalidatePath("/pelanggan");
   revalidatePath(`/pelanggan/${code}`);
-  return { ok: true };
+  return { ok: true as const };
 }
 
 export async function deletePelangganAction(code: string) {
@@ -87,32 +116,40 @@ export async function deletePelangganAction(code: string) {
 
   await prisma.customer.delete({ where: { id: cust.id } });
   revalidatePath("/pelanggan");
-  redirect("/pelanggan");
+  return { ok: true as const };
 }
 
-export async function addUkuranAction(
-  code: string,
-  input: { judul: string; catatan?: string }
-) {
+export async function addUkuranAction(code: string, input: UkuranInput) {
   await requireUser();
   const cust = await prisma.customer.findUnique({ where: { code } });
   if (!cust) return { error: "Pelanggan tidak ditemukan" };
   if (!input.judul.trim()) return { error: "Judul ukuran wajib diisi" };
 
   await prisma.measurement.create({
-    data: {
-      customerId: cust.id,
-      judul: input.judul.trim(),
-      catatan: input.catatan?.trim() || null,
-    },
+    data: { customerId: cust.id, ...cleanUkuran(input) },
   });
   revalidatePath(`/pelanggan/${code}`);
-  return { ok: true };
+  return { ok: true as const };
+}
+
+export async function updateUkuranAction(
+  code: string,
+  ukuranId: string,
+  input: UkuranInput
+) {
+  await requireUser();
+  if (!input.judul.trim()) return { error: "Judul ukuran wajib diisi" };
+  await prisma.measurement.update({
+    where: { id: ukuranId },
+    data: cleanUkuran(input),
+  });
+  revalidatePath(`/pelanggan/${code}`);
+  return { ok: true as const };
 }
 
 export async function deleteUkuranAction(code: string, ukuranId: string) {
   await requireUser();
   await prisma.measurement.delete({ where: { id: ukuranId } });
   revalidatePath(`/pelanggan/${code}`);
-  return { ok: true };
+  return { ok: true as const };
 }

@@ -1,90 +1,121 @@
 "use client";
 
-import { useState, useRef, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { MoreHorizontal, Eye, Trash2 } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, Pencil } from "lucide-react";
+import { Popover } from "./Popover";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { useToast } from "./Toast";
 
 type DeleteResult = { error?: string } | void;
 
 export function RowActions({
   detailHref,
+  editHref,
   deleteAction,
-  deleteConfirm = "Yakin hapus item ini?",
+  deleteTitle = "Mau Hapus item ini?",
+  deleteDescription = "Item yang sudah dihapus tidak dapat dipulihkan.",
+  onDeleted,
 }: {
   detailHref: string;
+  editHref?: string;
   deleteAction?: () => Promise<DeleteResult>;
-  deleteConfirm?: string;
+  deleteTitle?: string;
+  deleteDescription?: string;
+  onDeleted?: { title: string; description?: string };
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const toast = useToast();
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, startTransition] = useTransition();
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
-  }, []);
 
   function handleDelete() {
     if (!deleteAction) return;
-    setOpen(false);
-    if (!confirm(deleteConfirm)) return;
     startTransition(async () => {
       try {
         const res = await deleteAction();
-        if (res && "error" in res && res.error) alert(res.error);
-        else router.refresh();
+        if (res && "error" in res && res.error) {
+          toast.error("Gagal menghapus", res.error);
+        } else if (onDeleted) {
+          toast.deleted(onDeleted.title, onDeleted.description);
+        }
+        setConfirmOpen(false);
+        router.refresh();
       } catch (err) {
-        // server action redirects throw; that's expected
         if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) return;
-        alert("Gagal menghapus");
+        toast.error("Gagal menghapus", "Terjadi kesalahan");
+        setConfirmOpen(false);
       }
     });
   }
 
   return (
-    <div ref={ref} className="relative inline-block">
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((o) => !o);
-        }}
-        disabled={pending}
-        className="text-ink-500 hover:text-ink-900 p-1 rounded hover:bg-ink-100"
+    <>
+      <Popover
+        align="right"
+        width={150}
+        trigger={({ onClick, ref }) => (
+          <button
+            ref={ref}
+            type="button"
+            onClick={onClick}
+            className="text-ink-500 hover:text-ink-900 p-1 rounded hover:bg-ink-100"
+          >
+            <MoreHorizontal className="h-5 w-5" />
+          </button>
+        )}
       >
-        <MoreHorizontal className="h-5 w-5" />
-      </button>
-      {open && (
-        <ul className="absolute right-0 z-20 mt-1 w-36 rounded-xl border border-ink-200 bg-white shadow-lg overflow-hidden">
-          <li>
-            <Link
-              href={detailHref}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-ink-700 hover:bg-brand-50"
-              onClick={() => setOpen(false)}
-            >
-              <Eye className="h-4 w-4" />
-              Detail
-            </Link>
-          </li>
-          {deleteAction && (
+        {(close) => (
+          <ul>
             <li>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#FF4B4B] hover:bg-[#FFD1C9]/40"
+              <Link
+                href={detailHref}
+                onClick={close}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-ink-700 hover:bg-brand-50"
               >
-                <Trash2 className="h-4 w-4" />
-                Hapus
-              </button>
+                <Eye className="h-4 w-4" /> Detail
+              </Link>
             </li>
-          )}
-        </ul>
-      )}
-    </div>
+            {editHref && (
+              <li>
+                <Link
+                  href={editHref}
+                  onClick={close}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-ink-700 hover:bg-brand-50"
+                >
+                  <Pencil className="h-4 w-4" /> Edit
+                </Link>
+              </li>
+            )}
+            {deleteAction && (
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    setConfirmOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#FF4B4B] hover:bg-[#FFD1C9]/40"
+                >
+                  <Trash2 className="h-4 w-4" /> Hapus
+                </button>
+              </li>
+            )}
+          </ul>
+        )}
+      </Popover>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={deleteTitle}
+        description={deleteDescription}
+        confirmLabel="Ya, Hapus"
+        cancelLabel="Batal"
+        pending={pending}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleDelete}
+      />
+    </>
   );
 }

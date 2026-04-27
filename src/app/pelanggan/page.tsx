@@ -5,9 +5,8 @@ import { Topbar } from "@/components/Topbar";
 import { StatusBadge } from "@/components/Badge";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { ExportButton } from "@/components/ExportButton";
-import { RowActions } from "@/components/RowActions";
+import { PelangganRowActions } from "@/components/PelangganRowActions";
 import { formatDate } from "@/lib/format";
-import { deletePelangganAction } from "@/lib/actions/pelanggan";
 import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -120,11 +119,7 @@ export default async function PelangganPage({
                     <StatusBadge value={p.gender} withChevron={false} />
                   </Td>
                   <Td>
-                    <RowActions
-                      detailHref={`/pelanggan/${p.code}`}
-                      deleteAction={deletePelangganAction.bind(null, p.code)}
-                      deleteConfirm={`Hapus pelanggan ${p.nama}?`}
-                    />
+                    <PelangganRowActions code={p.code} nama={p.nama} />
                   </Td>
                 </tr>
               ))}

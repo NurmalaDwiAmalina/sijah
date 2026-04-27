@@ -25,6 +25,8 @@ export async function createPesananAction(input: {
   tglEstimasi: string;
   catatan?: string;
   fotoReferensi?: string | null;
+  status?: string;
+  statusBayar?: string;
   items: ItemInput[];
   biaya: BiayaInput[];
 }) {
@@ -33,6 +35,9 @@ export async function createPesananAction(input: {
   if (!input.customerCode) return { error: "Pelanggan wajib dipilih" };
   if (input.items.length === 0)
     return { error: "Minimal pilih satu ukuran" };
+
+  const initialStatus = input.status ?? "Antrean";
+  const initialStatusBayar = input.statusBayar ?? "Belum Bayar";
 
   const customer = await prisma.customer.findUnique({
     where: { code: input.customerCode },
@@ -57,7 +62,7 @@ export async function createPesananAction(input: {
         lebarBahu: m.lebarBahu,
         lingkarDada: m.lingkarDada,
         lingkarPinggang: m.lingkarPinggang,
-        lingkarPanggul: m.lingkarPanggul,
+        lingkarPinggul: m.lingkarPinggul,
         panjangLengan: m.panjangLengan,
         panjangBaju: m.panjangBaju,
       }),
@@ -79,6 +84,8 @@ export async function createPesananAction(input: {
       tglEstimasi: parseDate(input.tglEstimasi),
       catatan: input.catatan?.trim() || null,
       fotoReferensi: input.fotoReferensi || null,
+      status: initialStatus,
+      statusBayar: initialStatusBayar,
       totalHarga: total,
       snapshotNama: customer.nama,
       snapshotNoWa: customer.noWa,
@@ -104,7 +111,35 @@ export async function updateStatusPesananAction(
   await prisma.order.update({ where: { code }, data: { status } });
   revalidatePath("/pesanan");
   revalidatePath("/dashboard");
-  return { ok: true };
+  return { ok: true as const };
+}
+
+export async function updatePesananAction(
+  code: string,
+  input: {
+    judul?: string;
+    catatan?: string | null;
+    status?: string;
+    statusBayar?: string;
+    tglEstimasi?: string;
+    fotoReferensi?: string | null;
+  }
+) {
+  await requireUser();
+  const data: Record<string, unknown> = {};
+  if (input.judul !== undefined) data.judul = input.judul.trim();
+  if (input.catatan !== undefined) data.catatan = input.catatan;
+  if (input.status !== undefined) data.status = input.status;
+  if (input.statusBayar !== undefined) data.statusBayar = input.statusBayar;
+  if (input.tglEstimasi !== undefined && input.tglEstimasi)
+    data.tglEstimasi = parseDate(input.tglEstimasi);
+  if (input.fotoReferensi !== undefined) data.fotoReferensi = input.fotoReferensi;
+
+  await prisma.order.update({ where: { code }, data });
+  revalidatePath("/pesanan");
+  revalidatePath(`/pesanan/${code}`);
+  revalidatePath("/dashboard");
+  return { ok: true as const };
 }
 
 export async function deletePesananAction(code: string) {

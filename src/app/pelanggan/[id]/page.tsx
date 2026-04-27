@@ -38,7 +38,10 @@ export default async function PelangganDetailPage({
           noWa: pelanggan.noWa,
           alamat: pelanggan.alamat,
           gender: pelanggan.gender,
-          measurements: pelanggan.measurements,
+          measurements: pelanggan.measurements.map((m) => ({
+            ...m,
+            kategori: m.kategori as "Atasan" | "Bawahan" | "Standar",
+          })),
         }}
       />
     </DashboardShell>

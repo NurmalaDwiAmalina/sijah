@@ -37,6 +37,8 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
   const [tglMasuk, setTglMasuk] = useState("");
   const [tglEstimasi, setTglEstimasi] = useState("");
   const [catatan, setCatatan] = useState("");
+  const [status, setStatus] = useState("Antrean");
+  const [statusBayar, setStatusBayar] = useState("Belum Bayar");
   const [foto, setFoto] = useState<string | null>(null);
   const [fotoErr, setFotoErr] = useState<string | null>(null);
   const fotoRef = useRef<HTMLInputElement>(null);
@@ -107,6 +109,8 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
         tglEstimasi,
         catatan,
         fotoReferensi: foto,
+        status,
+        statusBayar,
         items,
         biaya: biaya.filter((b) => b.label.trim() && b.amount > 0),
       });
@@ -418,6 +422,33 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
               className="input-base pr-10"
             />
             <ClipboardList className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
+          </div>
+        </div>
+
+        <div className="mt-5 grid md:grid-cols-2 gap-5">
+          <div>
+            <label className="label-base">Status Pesanan</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="input-base"
+            >
+              {["Antrean", "Potong Kain", "Dijahit", "Fitting", "Selesai", "Diambil", "Dibatalkan"].map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label-base">Status Pembayaran</label>
+            <select
+              value={statusBayar}
+              onChange={(e) => setStatusBayar(e.target.value)}
+              className="input-base"
+            >
+              {["Belum Bayar", "DP", "Lunas"].map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>

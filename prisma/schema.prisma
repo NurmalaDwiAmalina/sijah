@@ -16,12 +16,23 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   sessions  Session[]
+  resetTokens PasswordReset[]
 }
 
 model Session {
   id        String   @id @default(cuid())
   userId    String
   expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -42,14 +53,25 @@ model Measurement {
   id              String      @id @default(cuid())
   customerId      String
   judul           String
+  kategori        String      @default("Atasan") // Atasan / Bawahan / Standar
   catatan         String?
+
+  // Atasan
   lingkarLeher    Float?
   lebarBahu       Float?
   lingkarDada     Float?
   lingkarPinggang Float?
-  lingkarPanggul  Float?
   panjangLengan   Float?
   panjangBaju     Float?
+
+  // Bawahan
+  lingkarPinggul  Float?
+  lingkarPaha     Float?
+  panjangCelana   Float?
+
+  // Standar (S/M/L/XL/Custom)
+  ukuranStandar   String?
+
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -103,9 +125,12 @@ model AdditionalCost {
 
 model Payment {
   id        String   @id @default(cuid())
+  code      String   @unique
   orderId   String
   jumlah    Float
   metode    String
+  catatan   String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
