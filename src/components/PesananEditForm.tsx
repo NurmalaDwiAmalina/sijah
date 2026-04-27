@@ -6,9 +6,7 @@ import { useRouter } from "next/navigation";
 import { Calendar, ClipboardList, ImageIcon, X } from "lucide-react";
 import { updatePesananAction } from "@/lib/actions/pesanan";
 import { useToast } from "./Toast";
-
-const STATUS = ["Antrean", "Potong Kain", "Dijahit", "Fitting", "Selesai", "Diambil", "Dibatalkan"];
-const BAYAR = ["Belum Bayar", "DP", "Lunas"];
+import { ORDER_STATUS, PAYMENT_STATUS, VALIDATION } from "@/lib/config";
 
 export function PesananEditForm({
   code,
@@ -36,12 +34,15 @@ export function PesananEditForm({
   const fotoRef = useRef<HTMLInputElement>(null);
 
   function handleFoto(file: File) {
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error("Format harus JPG/PNG/WebP");
+    const allowed = VALIDATION.upload.allowedImageTypes as readonly string[];
+    if (!allowed.includes(file.type)) {
+      toast.error(`Format harus ${VALIDATION.upload.allowedExtensionsLabel}`);
       return;
     }
-    if (file.size > 1024 * 1024) {
-      toast.error("Maksimal 1MB");
+    if (file.size > VALIDATION.upload.fotoReferensiMaxBytes) {
+      toast.error(
+        `Maksimal ${Math.round(VALIDATION.upload.fotoReferensiMaxBytes / 1024)}KB`
+      );
       return;
     }
     const reader = new FileReader();
@@ -96,7 +97,7 @@ export function PesananEditForm({
               onChange={(e) => setStatus(e.target.value)}
               className="input-base"
             >
-              {STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
+              {ORDER_STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div>
@@ -106,7 +107,7 @@ export function PesananEditForm({
               onChange={(e) => setStatusBayar(e.target.value)}
               className="input-base"
             >
-              {BAYAR.map((s) => <option key={s} value={s}>{s}</option>)}
+              {PAYMENT_STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
         </div>

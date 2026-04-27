@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { Eye, EyeOff, KeyRound } from "lucide-react";
 import { resetPasswordAction } from "@/lib/actions/auth";
 import { PasswordSuccessModal } from "./PasswordSuccessModal";
+import { passwordChecks } from "@/lib/config";
 
 export function ResetPasswordForm() {
   const sp = useSearchParams();
@@ -17,12 +18,7 @@ export function ResetPasswordForm() {
   const [success, setSuccess] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  const checks = [
-    { label: "Minimal 8 karakter", ok: pwd.length >= 8 },
-    { label: "Minimal 1 nomor", ok: /\d/.test(pwd) },
-    { label: "Minimal 1 spesial karakter", ok: /[!@#$%^&*()_\-+=]/.test(pwd) },
-    { label: "Minimal 1 huruf Kapital", ok: /[A-Z]/.test(pwd) },
-  ];
+  const checks = passwordChecks(pwd);
   const allChecked = checks.every((c) => c.ok);
   const matched = pwd === confirm && pwd.length > 0;
 

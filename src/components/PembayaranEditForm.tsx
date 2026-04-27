@@ -7,6 +7,7 @@ import { Wallet } from "lucide-react";
 import { updatePembayaranAction } from "@/lib/actions/pembayaran";
 import { useToast } from "./Toast";
 import { formatRupiah } from "@/lib/format";
+import { PAYMENT_METHOD, type PaymentMethod } from "@/lib/config";
 
 export function PembayaranEditForm({
   code,
@@ -23,7 +24,7 @@ export function PembayaranEditForm({
   const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [jumlah, setJumlah] = useState<number>(initial.jumlah);
-  const [metode, setMetode] = useState<"Tunai" | "Transfer">(initial.metode);
+  const [metode, setMetode] = useState<PaymentMethod>(initial.metode);
   const [catatan, setCatatan] = useState(initial.catatan);
 
   const sisaSetelahEdit = Math.max(0, order.totalHarga - totalDibayarLain - jumlah);
@@ -81,7 +82,7 @@ export function PembayaranEditForm({
         <div>
           <p className="label-base">Metode Pembayaran</p>
           <div className="flex items-center gap-3">
-            {(["Tunai", "Transfer"] as const).map((m) => (
+            {PAYMENT_METHOD.map((m) => (
               <button
                 key={m}
                 type="button"

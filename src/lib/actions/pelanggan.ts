@@ -6,7 +6,9 @@ import { prisma } from "@/lib/db";
 import { nextCustomerCode } from "@/lib/code";
 import { requireUser } from "@/lib/auth";
 
-export type Kategori = "Atasan" | "Bawahan" | "Standar";
+import type { MeasurementKategori } from "@/lib/config";
+
+export type Kategori = MeasurementKategori;
 
 export type UkuranInput = {
   judul: string;

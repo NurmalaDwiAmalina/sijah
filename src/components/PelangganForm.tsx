@@ -14,6 +14,7 @@ import { formatDate } from "@/lib/format";
 import { UkuranModal, type UkuranData } from "./UkuranModal";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { useToast } from "./Toast";
+import { GENDER } from "@/lib/config";
 
 type UkuranItem = UkuranData & {
   id?: string;
@@ -191,7 +192,7 @@ export function PelangganForm({
           <div className="mt-5">
             <p className="label-base">Gender</p>
             <div className="flex items-center gap-8">
-              {(["Laki-laki", "Perempuan"] as const).map((g) => (
+              {GENDER.map((g) => (
                 <label
                   key={g}
                   className="flex items-center gap-2 text-sm text-ink-700 cursor-pointer"

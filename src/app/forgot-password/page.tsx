@@ -6,6 +6,7 @@ import { Mail } from "lucide-react";
 import { AuthShell } from "@/components/AuthShell";
 import { CekEmailModal } from "@/components/CekEmailModal";
 import { requestPasswordResetAction } from "@/lib/actions/auth";
+import { BRAND } from "@/lib/config";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -31,10 +32,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <>
-      <AuthShell
-        heading={"Lupa\nPassword"}
-        subheading="Reset password lama anda, dan buat password baru yang kuat"
-      >
+      <AuthShell heading={BRAND.forgotHeading} subheading={BRAND.forgotSubheading}>
         <h2 className="text-xl font-bold text-ink-900">Lupa Password</h2>
         <p className="mt-1 text-sm text-ink-500">
           Masukkan email yang terdaftar, kami akan kirim link reset password.

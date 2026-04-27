@@ -10,6 +10,12 @@ import {
   type UkuranInput,
 } from "@/lib/actions/pelanggan";
 import { useToast } from "./Toast";
+import {
+  ATASAN_FIELDS,
+  BAWAHAN_FIELDS,
+  MEASUREMENT_KATEGORI,
+  STANDAR_SIZES,
+} from "@/lib/config";
 
 type Mode = "add" | "edit" | "view";
 
@@ -29,24 +35,6 @@ export type UkuranData = {
   panjangCelana?: number | null;
   ukuranStandar?: string | null;
 };
-
-const ATASAN_FIELDS = [
-  ["lingkarLeher", "Lingkar Leher"],
-  ["lebarBahu", "Lebar Bahu"],
-  ["lingkarDada", "Lingkar Dada"],
-  ["lingkarPinggang", "Lingkar Pinggang"],
-  ["panjangLengan", "Panjang Lengan"],
-  ["panjangBaju", "Panjang Baju"],
-] as const;
-
-const BAWAHAN_FIELDS = [
-  ["lingkarPinggang", "Lingkar Pinggang"],
-  ["lingkarPinggul", "Lingkar Panggul"],
-  ["lingkarPaha", "Lingkar Paha"],
-  ["panjangCelana", "Panjang Celana"],
-] as const;
-
-const STANDAR_OPTIONS = ["XS", "S", "M", "L", "XL", "XXL", "Custom"];
 
 export function UkuranModal({
   open,
@@ -176,7 +164,7 @@ export function UkuranModal({
             <div>
               <label className="label-base">Kategori</label>
               <div className="flex flex-wrap gap-2">
-                {(["Atasan", "Bawahan", "Standar"] as const).map((k) => (
+                {MEASUREMENT_KATEGORI.map((k) => (
                   <button
                     key={k}
                     type="button"
@@ -222,7 +210,7 @@ export function UkuranModal({
             <div>
               <p className="text-sm font-semibold text-ink-900 mb-3">Ukuran Standar</p>
               <div className="flex flex-wrap gap-2">
-                {STANDAR_OPTIONS.map((s) => (
+                {STANDAR_SIZES.map((s) => (
                   <button
                     key={s}
                     type="button"

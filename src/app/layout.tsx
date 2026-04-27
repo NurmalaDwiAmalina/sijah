@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
+import { BRAND } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "AIS Sijah — Sistem Informasi Penjahit",
-  description: "Platform manajemen operasional digital untuk UMKM penjahit",
+  title: `${BRAND.fullName} — ${BRAND.tagline}`,
+  description: BRAND.description,
 };
 
 export default function RootLayout({

@@ -6,6 +6,7 @@ import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { ExportButton } from "@/components/ExportButton";
 import { PembayaranRowActions } from "@/components/PembayaranRowActions";
 import { formatRupiah, formatDate } from "@/lib/format";
+import { PAYMENT_METHOD, PAYMENT_METHOD_BADGE } from "@/lib/config";
 import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -71,10 +72,7 @@ export default async function PembayaranPage({
             {
               key: "metode",
               label: "Metode Pembayaran",
-              options: [
-                { value: "Tunai", label: "Tunai" },
-                { value: "Transfer", label: "Transfer" },
-              ],
+              options: PAYMENT_METHOD.map((m) => ({ value: m, label: m })),
             },
           ]}
         />
@@ -112,9 +110,8 @@ export default async function PembayaranPage({
                     <span
                       className={
                         "rounded-md px-2.5 py-1 text-xs font-medium " +
-                        (p.metode === "Tunai"
-                          ? "bg-[#FFEDB1] text-[#FFB62E]"
-                          : "bg-[#DAEEFF] text-[#008BFF]")
+                        (PAYMENT_METHOD_BADGE[p.metode as keyof typeof PAYMENT_METHOD_BADGE] ??
+                          "bg-ink-100 text-ink-700")
                       }
                     >
                       {p.metode}

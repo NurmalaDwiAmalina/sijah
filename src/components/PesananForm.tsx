@@ -14,6 +14,7 @@ import {
 import { useRef } from "react";
 import { createPesananAction } from "@/lib/actions/pesanan";
 import { formatRupiah } from "@/lib/format";
+import { ORDER_STATUS, PAYMENT_STATUS, VALIDATION } from "@/lib/config";
 
 type CustomerOption = {
   code: string;
@@ -49,12 +50,15 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
 
   function handleFoto(file: File) {
     setFotoErr(null);
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setFotoErr("Format harus JPG/PNG/WebP");
+    const allowed = VALIDATION.upload.allowedImageTypes as readonly string[];
+    if (!allowed.includes(file.type)) {
+      setFotoErr(`Format harus ${VALIDATION.upload.allowedExtensionsLabel}`);
       return;
     }
-    if (file.size > 1024 * 1024) {
-      setFotoErr("Maksimal 1MB");
+    if (file.size > VALIDATION.upload.fotoReferensiMaxBytes) {
+      setFotoErr(
+        `Maksimal ${Math.round(VALIDATION.upload.fotoReferensiMaxBytes / 1024)}KB`
+      );
       return;
     }
     const reader = new FileReader();
@@ -433,7 +437,7 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
               onChange={(e) => setStatus(e.target.value)}
               className="input-base"
             >
-              {["Antrean", "Potong Kain", "Dijahit", "Fitting", "Selesai", "Diambil", "Dibatalkan"].map((s) => (
+              {ORDER_STATUS.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
@@ -445,7 +449,7 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
               onChange={(e) => setStatusBayar(e.target.value)}
               className="input-base"
             >
-              {["Belum Bayar", "DP", "Lunas"].map((s) => (
+              {PAYMENT_STATUS.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>

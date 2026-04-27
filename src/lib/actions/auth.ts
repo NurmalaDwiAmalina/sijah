@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { createSession, destroySession, requireUser } from "@/lib/auth";
+import { VALIDATION } from "@/lib/config";
 
 export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -36,7 +37,8 @@ export async function updatePasswordAction(formData: FormData) {
   const confirm = String(formData.get("confirmPassword") ?? "");
 
   if (newPwd !== confirm) return { error: "Konfirmasi password tidak cocok" };
-  if (newPwd.length < 8) return { error: "Password minimal 8 karakter" };
+  if (newPwd.length < VALIDATION.password.minLength)
+    return { error: `Password minimal ${VALIDATION.password.minLength} karakter` };
 
   const ok = await bcrypt.compare(oldPwd, user.password);
   if (!ok) return { error: "Password lama salah" };
@@ -64,7 +66,7 @@ export async function requestPasswordResetAction(formData: FormData) {
     data: {
       token,
       userId: user.id,
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 jam
+      expiresAt: new Date(Date.now() + VALIDATION.passwordReset.durationMs),
     },
   });
 
@@ -80,7 +82,8 @@ export async function resetPasswordAction(formData: FormData) {
 
   if (!token) return { error: "Token tidak ada" };
   if (newPwd !== confirm) return { error: "Konfirmasi password tidak cocok" };
-  if (newPwd.length < 8) return { error: "Password minimal 8 karakter" };
+  if (newPwd.length < VALIDATION.password.minLength)
+    return { error: `Password minimal ${VALIDATION.password.minLength} karakter` };
 
   const reset = await prisma.passwordReset.findUnique({
     where: { token },

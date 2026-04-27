@@ -1,19 +1,17 @@
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
+import {
+  ORDER_STATUS_BADGE,
+  PAYMENT_STATUS_BADGE,
+  PAYMENT_METHOD_BADGE,
+  GENDER_BADGE,
+} from "@/lib/config";
 
 const palette: Record<string, string> = {
-  "Antrean": "bg-[#DFDFDF] text-[#504F4F]",
-  "Potong Kain": "bg-[#DAEEFF] text-[#008BFF]",
-  "Dijahit": "bg-[#FFEDB1] text-[#FFB62E]",
-  "Fitting": "bg-[#DEFFA7] text-[#019537]",
-  "Selesai": "bg-[#DEFFA7] text-[#019537]",
-  "Diambil": "bg-[#DEFFA7] text-[#019537]",
-  "Dibatalkan": "bg-[#FFD1C9] text-[#FF4B4B]",
-  "Laki-laki": "bg-[#DAEEFF] text-[#008BFF]",
-  "Perempuan": "bg-[#FFD1C9] text-[#FF4B4B]",
-  "Lunas": "bg-[#DEFFA7] text-[#019537]",
-  "DP": "bg-[#FFEDB1] text-[#FFB62E]",
-  "Belum Bayar": "bg-[#FFD1C9] text-[#FF4B4B]",
+  ...ORDER_STATUS_BADGE,
+  ...PAYMENT_STATUS_BADGE,
+  ...PAYMENT_METHOD_BADGE,
+  ...GENDER_BADGE,
 };
 
 export function StatusBadge({

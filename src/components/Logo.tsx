@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { BRAND } from "@/lib/config";
 
 export function Logo({
   withTagline = false,
@@ -10,10 +11,8 @@ export function Logo({
   size?: "sm" | "md" | "lg";
 }) {
   const isLight = variant === "light";
-  const dim =
-    size === "lg" ? "h-12 w-12" : size === "sm" ? "h-8 w-8" : "h-10 w-10";
-  const txt =
-    size === "lg" ? "text-3xl" : size === "sm" ? "text-lg" : "text-2xl";
+  const dim = size === "lg" ? "h-12 w-12" : size === "sm" ? "h-8 w-8" : "h-10 w-10";
+  const txt = size === "lg" ? "text-3xl" : size === "sm" ? "text-lg" : "text-2xl";
 
   return (
     <div className="flex items-center gap-2">
@@ -24,7 +23,9 @@ export function Logo({
           isLight ? "bg-white text-brand-600" : "bg-brand-600 text-white"
         )}
       >
-        <span className={size === "lg" ? "text-xl" : "text-base"}>SJ</span>
+        <span className={size === "lg" ? "text-xl" : "text-base"}>
+          {BRAND.logoText}
+        </span>
       </div>
       <div className="leading-tight">
         <p
@@ -34,7 +35,7 @@ export function Logo({
             isLight ? "text-white" : "text-brand-600"
           )}
         >
-          sijah
+          {BRAND.shortName}
         </p>
         {withTagline && (
           <p
@@ -43,7 +44,7 @@ export function Logo({
               isLight ? "text-white/80" : "text-ink-500"
             )}
           >
-            Sistem Informasi Penjahit
+            {BRAND.tagline}
           </p>
         )}
       </div>

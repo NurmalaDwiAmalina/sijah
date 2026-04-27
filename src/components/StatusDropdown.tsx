@@ -7,26 +7,7 @@ import { updateStatusPesananAction } from "@/lib/actions/pesanan";
 import { Popover } from "./Popover";
 import { useToast } from "./Toast";
 import { cn } from "@/lib/cn";
-
-const STATUS_LIST = [
-  "Antrean",
-  "Potong Kain",
-  "Dijahit",
-  "Fitting",
-  "Selesai",
-  "Diambil",
-  "Dibatalkan",
-] as const;
-
-const palette: Record<string, string> = {
-  Antrean: "bg-[#DFDFDF] text-[#504F4F]",
-  "Potong Kain": "bg-[#DAEEFF] text-[#008BFF]",
-  Dijahit: "bg-[#FFEDB1] text-[#FFB62E]",
-  Fitting: "bg-[#DEFFA7] text-[#019537]",
-  Selesai: "bg-[#DEFFA7] text-[#019537]",
-  Diambil: "bg-[#DEFFA7] text-[#019537]",
-  Dibatalkan: "bg-[#FFD1C9] text-[#FF4B4B]",
-};
+import { ORDER_STATUS, ORDER_STATUS_BADGE } from "@/lib/config";
 
 export function StatusDropdown({
   code,
@@ -63,7 +44,8 @@ export function StatusDropdown({
           disabled={pending}
           className={cn(
             "inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium hover:brightness-95 transition",
-            palette[current] ?? "bg-ink-100 text-ink-700"
+            ORDER_STATUS_BADGE[current as keyof typeof ORDER_STATUS_BADGE] ??
+              "bg-ink-100 text-ink-700"
           )}
         >
           {pending ? "..." : current}
@@ -73,17 +55,21 @@ export function StatusDropdown({
     >
       {(close) => (
         <ul>
-          {STATUS_LIST.map((s) => (
+          {ORDER_STATUS.map((s) => (
             <li key={s}>
               <button
                 type="button"
                 onClick={() => pick(s, close)}
                 className={cn(
                   "w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-brand-50",
-                  s === current ? "bg-brand-50/60 text-brand-700 font-semibold" : "text-ink-700"
+                  s === current
+                    ? "bg-brand-50/60 text-brand-700 font-semibold"
+                    : "text-ink-700"
                 )}
               >
-                <span className={cn("inline-block rounded px-1.5 py-0.5", palette[s])}>{s}</span>
+                <span className={cn("inline-block rounded px-1.5 py-0.5", ORDER_STATUS_BADGE[s])}>
+                  {s}
+                </span>
                 {s === current && <Check className="h-3.5 w-3.5 text-brand-600" />}
               </button>
             </li>

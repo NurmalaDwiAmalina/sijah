@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AuthShell } from "@/components/AuthShell";
 import { updatePasswordAction } from "@/lib/actions/auth";
+import { BRAND, passwordChecks } from "@/lib/config";
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
@@ -16,12 +17,7 @@ export default function UpdatePasswordPage() {
   const [ok, setOk] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  const checks = [
-    { label: "Minimal 8 karakter", ok: pwd.length >= 8 },
-    { label: "Minimal 1 nomor", ok: /\d/.test(pwd) },
-    { label: "Minimal 1 spesial karakter", ok: /[!@#$%^&*()_\-+=]/.test(pwd) },
-    { label: "Minimal 1 huruf Kapital", ok: /[A-Z]/.test(pwd) },
-  ];
+  const checks = passwordChecks(pwd);
   const allChecked = checks.every((c) => c.ok);
   const matched = pwd === confirm && pwd.length > 0;
 
@@ -44,10 +40,7 @@ export default function UpdatePasswordPage() {
   }
 
   return (
-    <AuthShell
-      heading={"Update\nPassword"}
-      subheading="Sebelum update password tolong masukkan password lamamu diform samping!"
-    >
+    <AuthShell heading={BRAND.updateHeading} subheading={BRAND.updateSubheading}>
       <h2 className="text-xl font-bold text-ink-900">Update Password</h2>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5">

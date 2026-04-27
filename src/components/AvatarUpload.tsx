@@ -2,8 +2,11 @@
 
 import { useRef, useState } from "react";
 import { User } from "lucide-react";
+import { VALIDATION } from "@/lib/config";
 
-const MAX_SIZE = 800 * 1024; // 800KB
+const MAX_SIZE = VALIDATION.upload.avatarMaxBytes;
+const ALLOWED = VALIDATION.upload.allowedImageTypes as readonly string[];
+const ALLOWED_LABEL = VALIDATION.upload.allowedExtensionsLabel;
 
 export function AvatarUpload({
   value,
@@ -17,12 +20,12 @@ export function AvatarUpload({
 
   function handleFile(file: File) {
     setError(null);
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setError("Hanya format JPG, PNG, atau WebP");
+    if (!ALLOWED.includes(file.type)) {
+      setError(`Hanya format ${ALLOWED_LABEL}`);
       return;
     }
     if (file.size > MAX_SIZE) {
-      setError("Ukuran maksimal 800KB");
+      setError(`Ukuran maksimal ${Math.round(MAX_SIZE / 1024)}KB`);
       return;
     }
     const reader = new FileReader();
@@ -72,7 +75,7 @@ export function AvatarUpload({
         <p className="mt-3 text-xs text-ink-500">
           At least 512 × 512 px recommended.
           <br />
-          JPG / PNG / WebP, max 800KB.
+          {ALLOWED_LABEL}, max {Math.round(MAX_SIZE / 1024)}KB.
         </p>
         {error && <p className="mt-1 text-xs text-[#FF4B4B]">{error}</p>}
       </div>

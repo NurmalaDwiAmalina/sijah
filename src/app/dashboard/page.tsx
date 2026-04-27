@@ -6,19 +6,15 @@ import { DonutChart } from "@/components/DonutChart";
 import { ExportButton } from "@/components/ExportButton";
 import { SearchFilterBar } from "@/components/SearchFilterBar";
 import { formatRupiah, formatDate } from "@/lib/format";
+import { ORDER_STATUS, STATUS_COLORS, BRAND } from "@/lib/config";
 import { DollarSign, Wallet, ShoppingBasket } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_DEFS = [
-  { label: "Antrean", color: "#868686" },
-  { label: "Potong Kain", color: "#008BFF" },
-  { label: "Dijahit", color: "#FFB62E" },
-  { label: "Fitting", color: "#0FD859" },
-  { label: "Selesai", color: "#17D55C" },
-  { label: "Diambil", color: "#019537" },
-  { label: "Dibatalkan", color: "#FF4B4B" },
-];
+const STATUS_DEFS = ORDER_STATUS.map((label) => ({
+  label,
+  color: STATUS_COLORS[label],
+}));
 
 export default async function DashboardPage({
   searchParams,
@@ -82,7 +78,7 @@ export default async function DashboardPage({
     "Created at": formatDate(p.createdAt),
   }));
 
-  const greetingName = user?.username ?? "Admin";
+  const greetingName = user?.username ?? BRAND.defaultGreetingName;
 
   return (
     <DashboardShell>

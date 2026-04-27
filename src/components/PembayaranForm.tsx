@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { ChevronDown, Wallet } from "lucide-react";
 import { createPembayaranAction } from "@/lib/actions/pembayaran";
 import { formatRupiah } from "@/lib/format";
+import { PAYMENT_METHOD, type PaymentMethod } from "@/lib/config";
 
 type OrderOption = {
   code: string;
@@ -36,7 +37,7 @@ function PembayaranFormInner({ orders }: { orders: OrderOption[] }) {
   }, [initialCode, orders]);
   const [open, setOpen] = useState(false);
   const [bayar, setBayar] = useState<number>(0);
-  const [metode, setMetode] = useState<"Tunai" | "Transfer" | null>(null);
+  const [metode, setMetode] = useState<PaymentMethod | null>(null);
   const [catatan, setCatatan] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -232,7 +233,7 @@ function PembayaranFormInner({ orders }: { orders: OrderOption[] }) {
         <div className="mt-6">
           <p className="label-base">Metode Pembayaran</p>
           <div className="flex items-center gap-3">
-            {(["Tunai", "Transfer"] as const).map((m) => (
+            {PAYMENT_METHOD.map((m) => (
               <button
                 key={m}
                 type="button"

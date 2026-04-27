@@ -7,21 +7,10 @@ import { ExportButton } from "@/components/ExportButton";
 import { StatusDropdown } from "@/components/StatusDropdown";
 import { PesananRowActions } from "@/components/PesananRowActions";
 import { formatRupiah, formatDate } from "@/lib/format";
+import { ORDER_STATUS, PAYMENT_STATUS, PAYMENT_STATUS_BADGE } from "@/lib/config";
 import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_OPTIONS = [
-  "Antrean",
-  "Potong Kain",
-  "Dijahit",
-  "Fitting",
-  "Selesai",
-  "Diambil",
-  "Dibatalkan",
-];
-
-const STATUS_BAYAR_OPTIONS = ["Belum Bayar", "DP", "Lunas"];
 
 export default async function PesananPage({
   searchParams,
@@ -86,12 +75,12 @@ export default async function PesananPage({
             {
               key: "status",
               label: "Status Pesanan",
-              options: STATUS_OPTIONS.map((s) => ({ value: s, label: s })),
+              options: ORDER_STATUS.map((s) => ({ value: s, label: s })),
             },
             {
               key: "statusBayar",
               label: "Status Bayar",
-              options: STATUS_BAYAR_OPTIONS.map((s) => ({ value: s, label: s })),
+              options: PAYMENT_STATUS.map((s) => ({ value: s, label: s })),
             },
           ]}
         />
@@ -141,11 +130,8 @@ export default async function PesananPage({
                     <span
                       className={
                         "rounded-md px-2.5 py-1 text-xs font-medium " +
-                        (p.statusBayar === "Lunas"
-                          ? "bg-[#DEFFA7] text-[#019537]"
-                          : p.statusBayar === "DP"
-                          ? "bg-[#FFEDB1] text-[#FFB62E]"
-                          : "bg-[#FFD1C9] text-[#FF4B4B]")
+                        (PAYMENT_STATUS_BADGE[p.statusBayar as keyof typeof PAYMENT_STATUS_BADGE] ??
+                          "bg-ink-100 text-ink-700")
                       }
                     >
                       {p.statusBayar}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { AuthShell } from "@/components/AuthShell";
 import { loginAction } from "@/lib/actions/auth";
+import { BRAND } from "@/lib/config";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -12,10 +13,7 @@ export default function LoginPage() {
   const [pending, setPending] = useState(false);
 
   return (
-    <AuthShell
-      heading={"Hallo,\nMinjah!"}
-      subheading="Ayo masuk dan kelola semua pelanggan dan pesanan jahitanmu!"
-    >
+    <AuthShell heading={BRAND.authHeading} subheading={BRAND.authSubheading}>
       <h2 className="text-2xl font-bold text-ink-900">Selamat datang min!</h2>
       <p className="mt-1 text-sm text-ink-500">
         Masuk untuk mengelola pesananmu hari ini.
@@ -90,10 +88,6 @@ export default function LoginPage() {
         <button type="submit" disabled={pending} className="btn-primary w-full">
           {pending ? "Login..." : "Login"}
         </button>
-
-        <p className="text-center text-xs text-ink-500">
-          Demo: <b>admin@sijah.com</b> / <b>admin123</b>
-        </p>
       </form>
     </AuthShell>
   );
