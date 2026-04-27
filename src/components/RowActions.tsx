@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MoreHorizontal, Eye, Trash2 } from "lucide-react";
 
+type DeleteResult = { error?: string } | void;
+
 export function RowActions({
   detailHref,
-  onDelete,
+  deleteAction,
   deleteConfirm = "Yakin hapus item ini?",
 }: {
   detailHref: string;
-  onDelete?: () => Promise<{ error?: string } | void>;
+  deleteAction?: () => Promise<DeleteResult>;
   deleteConfirm?: string;
 }) {
   const router = useRouter();
@@ -28,13 +30,19 @@ export function RowActions({
   }, []);
 
   function handleDelete() {
-    if (!onDelete) return;
+    if (!deleteAction) return;
     setOpen(false);
     if (!confirm(deleteConfirm)) return;
     startTransition(async () => {
-      const res = await onDelete();
-      if (res && "error" in res && res.error) alert(res.error);
-      else router.refresh();
+      try {
+        const res = await deleteAction();
+        if (res && "error" in res && res.error) alert(res.error);
+        else router.refresh();
+      } catch (err) {
+        // server action redirects throw; that's expected
+        if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) return;
+        alert("Gagal menghapus");
+      }
     });
   }
 
@@ -63,7 +71,7 @@ export function RowActions({
               Detail
             </Link>
           </li>
-          {onDelete && (
+          {deleteAction && (
             <li>
               <button
                 type="button"

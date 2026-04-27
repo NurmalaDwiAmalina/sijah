@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -11,7 +11,18 @@ type FilterOption = {
   options: { value: string; label: string }[];
 };
 
-export function SearchFilterBar({
+export function SearchFilterBar(props: {
+  filters?: FilterOption[];
+  searchPlaceholder?: string;
+}) {
+  return (
+    <Suspense fallback={<div className="w-72 h-10 rounded-xl bg-ink-100 animate-pulse" />}>
+      <SearchFilterBarInner {...props} />
+    </Suspense>
+  );
+}
+
+function SearchFilterBarInner({
   filters = [],
   searchPlaceholder = "Search",
 }: {

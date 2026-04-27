@@ -122,7 +122,7 @@ export default async function PelangganPage({
                   <Td>
                     <RowActions
                       detailHref={`/pelanggan/${p.code}`}
-                      onDelete={async () => deletePelangganAction(p.code) as Promise<{ error?: string } | void>}
+                      deleteAction={deletePelangganAction.bind(null, p.code)}
                       deleteConfirm={`Hapus pelanggan ${p.nama}?`}
                     />
                   </Td>
