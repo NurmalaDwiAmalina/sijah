@@ -41,7 +41,6 @@ export default function LoginPage() {
               name="email"
               type="email"
               required
-              defaultValue="admin@sijah.com"
               placeholder="Masukkan email"
               className="input-base pl-10"
             />
@@ -56,7 +55,6 @@ export default function LoginPage() {
               name="password"
               type={showPwd ? "text" : "password"}
               required
-              defaultValue="admin123"
               placeholder="Masukkan password"
               className="input-base pl-10 pr-10"
             />

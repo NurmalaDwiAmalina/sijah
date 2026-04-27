@@ -4,10 +4,12 @@ export function AuthShell({
   heading,
   subheading,
   children,
+  fontSize = "text-5xl",
 }: {
   heading: string;
   subheading: string;
   children: React.ReactNode;
+  fontSize?: string;
 }) {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-white">
@@ -17,7 +19,7 @@ export function AuthShell({
 
         <div className="relative w-full max-w-lg rounded-3xl border border-white/30 bg-white/10 p-10 backdrop-blur-md shadow-xl">
           <Logo variant="light" size="lg" />
-          <h1 className="mt-24 text-5xl font-bold leading-tight text-white whitespace-pre-line">
+          <h1 className={`mt-24 ${fontSize} font-bold leading-tight text-white whitespace-pre-line`}>
             {heading}
           </h1>
           <p className="mt-4 text-lg text-white/90 leading-relaxed">

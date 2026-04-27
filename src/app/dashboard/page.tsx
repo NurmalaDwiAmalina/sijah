@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 import { DashboardShell } from "@/components/DashboardShell";
 import { Topbar } from "@/components/Topbar";
 import { DonutChart } from "@/components/DonutChart";
@@ -42,7 +43,8 @@ export default async function DashboardPage({
     ],
   };
 
-  const [orders, payments, allOrders] = await Promise.all([
+  const [user, orders, payments, allOrders] = await Promise.all([
+    getCurrentUser(),
     prisma.order.findMany({
       where: filter,
       orderBy: { createdAt: "desc" },
@@ -80,9 +82,11 @@ export default async function DashboardPage({
     "Created at": formatDate(p.createdAt),
   }));
 
+  const greetingName = user?.username ?? "Admin";
+
   return (
     <DashboardShell>
-      <Topbar title="Selamat datang, minjah!" />
+      <Topbar title={`Selamat datang, ${greetingName}!`} />
 
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl font-bold text-ink-900">Dashboard Penjualan</h2>
