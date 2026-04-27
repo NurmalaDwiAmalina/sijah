@@ -2,16 +2,20 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { KeyRound, Mail, User } from "lucide-react";
 import { logoutAction, updateProfileAction } from "@/lib/actions/auth";
+import { AvatarUpload } from "./AvatarUpload";
 
 export function ProfileForm({
   initial,
 }: {
-  initial: { username: string; email: string };
+  initial: { username: string; email: string; avatar: string | null };
 }) {
+  const router = useRouter();
   const [username, setUsername] = useState(initial.username);
   const [email, setEmail] = useState(initial.email);
+  const [avatar, setAvatar] = useState<string | null>(initial.avatar);
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -21,27 +25,19 @@ export function ProfileForm({
     const fd = new FormData();
     fd.set("username", username);
     fd.set("email", email);
+    fd.set("avatar", avatar ?? "");
     startTransition(async () => {
       const res = await updateProfileAction(fd);
-      if (res?.ok) setMsg("Tersimpan!");
+      if (res?.ok) {
+        setMsg("Tersimpan!");
+        router.refresh();
+      }
     });
   }
 
   return (
     <form onSubmit={handleSave} className="card p-7">
-      <div className="flex items-center gap-6">
-        <div className="h-24 w-24 rounded-full bg-gradient-to-br from-amber-200 to-amber-400 ring-2 ring-white shadow-sm" />
-        <div>
-          <button type="button" className="btn-secondary !py-2 !px-4 text-xs">
-            Upload Foto Baru
-          </button>
-          <p className="mt-3 text-xs text-ink-500">
-            At least 512 × 512 px recommended.
-            <br />
-            JPG or PNG is allowed
-          </p>
-        </div>
-      </div>
+      <AvatarUpload value={avatar} onChange={setAvatar} />
 
       <div className="mt-7 rounded-2xl bg-brand-50 p-6 border border-brand-100">
         <h3 className="text-base font-semibold text-ink-900 mb-5">Personal Info</h3>

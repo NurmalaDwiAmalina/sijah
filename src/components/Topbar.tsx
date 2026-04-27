@@ -1,14 +1,14 @@
-"use client";
+import { Search, User } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
 
-import { Search } from "lucide-react";
-
-export function Topbar({
+export async function Topbar({
   title,
   showSearch = true,
 }: {
   title: string;
   showSearch?: boolean;
 }) {
+  const user = await getCurrentUser();
   return (
     <header className="flex items-center justify-between gap-4 mb-6">
       <h1 className="text-2xl font-bold text-ink-900">{title}</h1>
@@ -22,7 +22,18 @@ export function Topbar({
             />
           </div>
         )}
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-200 to-amber-400 ring-2 ring-white shadow-sm" />
+        <a
+          href="/profile"
+          className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-200 to-amber-400 ring-2 ring-white shadow-sm overflow-hidden grid place-items-center"
+          title={user?.username ?? "Profile"}
+        >
+          {user?.avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.avatar} alt={user.username} className="h-full w-full object-cover" />
+          ) : (
+            <User className="h-5 w-5 text-white/70" />
+          )}
+        </a>
       </div>
     </header>
   );

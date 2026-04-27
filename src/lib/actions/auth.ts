@@ -52,10 +52,19 @@ export async function updateProfileAction(formData: FormData) {
   const user = await requireUser();
   const username = String(formData.get("username") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const avatar = formData.get("avatar");
+
+  const data: { username: string; email: string; avatar?: string | null } = {
+    username,
+    email,
+  };
+  if (typeof avatar === "string") {
+    data.avatar = avatar || null;
+  }
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { username, email },
+    data,
   });
   return { ok: true };
 }

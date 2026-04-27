@@ -2,16 +2,64 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { DashboardShell } from "@/components/DashboardShell";
 import { Topbar } from "@/components/Topbar";
-import { StatusBadge } from "@/components/Badge";
+import { SearchFilterBar } from "@/components/SearchFilterBar";
+import { ExportButton } from "@/components/ExportButton";
+import { StatusDropdown } from "@/components/StatusDropdown";
+import { RowActions } from "@/components/RowActions";
 import { formatRupiah, formatDate } from "@/lib/format";
-import { Download, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { deletePesananAction } from "@/lib/actions/pesanan";
+import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function PesananPage() {
+const STATUS_OPTIONS = [
+  "Antrean",
+  "Potong Kain",
+  "Dijahit",
+  "Fitting",
+  "Selesai",
+  "Diambil",
+  "Dibatalkan",
+];
+
+export default async function PesananPage({
+  searchParams,
+}: {
+  searchParams: { q?: string; status?: string };
+}) {
+  const q = searchParams.q?.trim();
+  const status = searchParams.status;
+
   const list = await prisma.order.findMany({
+    where: {
+      AND: [
+        status ? { status } : {},
+        q
+          ? {
+              OR: [
+                { judul: { contains: q, mode: "insensitive" } },
+                { code: { contains: q, mode: "insensitive" } },
+                { snapshotNama: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {},
+      ],
+    },
     orderBy: { createdAt: "desc" },
   });
+
+  const csvRows = list.map((p) => ({
+    ID: p.code,
+    "Nama Pesanan": p.judul,
+    "Nama Pelanggan": p.snapshotNama,
+    "No WA": p.snapshotNoWa,
+    Deadline: formatDate(p.tglEstimasi),
+    "Total Harga": p.totalHarga,
+    Status: p.status,
+    "Status Bayar": p.statusBayar,
+    "Created at": formatDate(p.createdAt),
+    "Updated at": formatDate(p.updatedAt),
+  }));
 
   return (
     <DashboardShell>
@@ -20,9 +68,7 @@ export default async function PesananPage() {
       <div className="flex items-center justify-between mb-5">
         <div />
         <div className="flex items-center gap-3">
-          <button className="btn-secondary !py-2.5 !px-4">
-            <Download className="h-4 w-4" /> Ekspor
-          </button>
+          <ExportButton rows={csvRows} filename="pesanan" />
           <Link href="/pesanan/new" className="btn-primary !py-2.5 !px-4">
             <Plus className="h-4 w-4" /> Add New
           </Link>
@@ -31,20 +77,23 @@ export default async function PesananPage() {
 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-ink-900">Pesanan ({list.length})</h2>
-        <div className="flex items-center gap-3">
-          <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
-            <input placeholder="Search" className="input-base pl-10 !py-2.5" />
-          </div>
-          <button className="btn-secondary !py-2.5 !px-4">
-            <SlidersHorizontal className="h-4 w-4" /> Filter
-          </button>
-        </div>
+        <SearchFilterBar
+          searchPlaceholder="Cari ID, judul, pelanggan..."
+          filters={[
+            {
+              key: "status",
+              label: "Status Pesanan",
+              options: STATUS_OPTIONS.map((s) => ({ value: s, label: s })),
+            },
+          ]}
+        />
       </div>
 
       {list.length === 0 ? (
         <div className="card p-12 text-center">
-          <p className="text-ink-500">Belum ada pesanan.</p>
+          <p className="text-ink-500">
+            {q || status ? "Tidak ada hasil." : "Belum ada pesanan."}
+          </p>
         </div>
       ) : (
         <div className="card p-2 overflow-x-auto">
@@ -59,6 +108,7 @@ export default async function PesananPage() {
                 <Th>Deadline</Th>
                 <Th>Total Harga</Th>
                 <Th>Status</Th>
+                <Th>Action</Th>
               </tr>
             </thead>
             <tbody>
@@ -71,7 +121,16 @@ export default async function PesananPage() {
                   <Td>{p.snapshotNama}</Td>
                   <Td>{formatDate(p.tglEstimasi)}</Td>
                   <Td>{formatRupiah(p.totalHarga)}</Td>
-                  <Td><StatusBadge value={p.status} /></Td>
+                  <Td>
+                    <StatusDropdown code={p.code} current={p.status} />
+                  </Td>
+                  <Td>
+                    <RowActions
+                      detailHref={`/pesanan`}
+                      onDelete={async () => deletePesananAction(p.code) as Promise<{ error?: string } | void>}
+                      deleteConfirm={`Hapus pesanan ${p.code}?`}
+                    />
+                  </Td>
                 </tr>
               ))}
             </tbody>

@@ -3,15 +3,51 @@ import { prisma } from "@/lib/db";
 import { DashboardShell } from "@/components/DashboardShell";
 import { Topbar } from "@/components/Topbar";
 import { StatusBadge } from "@/components/Badge";
+import { SearchFilterBar } from "@/components/SearchFilterBar";
+import { ExportButton } from "@/components/ExportButton";
+import { RowActions } from "@/components/RowActions";
 import { formatDate } from "@/lib/format";
-import { Download, Plus, Search, SlidersHorizontal, MoreHorizontal } from "lucide-react";
+import { deletePelangganAction } from "@/lib/actions/pelanggan";
+import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function PelangganPage() {
+export default async function PelangganPage({
+  searchParams,
+}: {
+  searchParams: { q?: string; gender?: string };
+}) {
+  const q = searchParams.q?.trim();
+  const gender = searchParams.gender;
+
   const list = await prisma.customer.findMany({
+    where: {
+      AND: [
+        gender ? { gender } : {},
+        q
+          ? {
+              OR: [
+                { nama: { contains: q, mode: "insensitive" } },
+                { code: { contains: q, mode: "insensitive" } },
+                { noWa: { contains: q } },
+                { alamat: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {},
+      ],
+    },
     orderBy: { createdAt: "desc" },
   });
+
+  const csvRows = list.map((p) => ({
+    ID: p.code,
+    "Nama Lengkap": p.nama,
+    "No WA": p.noWa,
+    Alamat: p.alamat,
+    Gender: p.gender,
+    "Created at": formatDate(p.createdAt),
+    "Updated at": formatDate(p.updatedAt),
+  }));
 
   return (
     <DashboardShell>
@@ -20,9 +56,7 @@ export default async function PelangganPage() {
       <div className="flex items-center justify-between mb-5">
         <div />
         <div className="flex items-center gap-3">
-          <button className="btn-secondary !py-2.5 !px-4">
-            <Download className="h-4 w-4" /> Ekspor
-          </button>
+          <ExportButton rows={csvRows} filename="pelanggan" />
           <Link href="/pelanggan/new" className="btn-primary !py-2.5 !px-4">
             <Plus className="h-4 w-4" /> Add New
           </Link>
@@ -33,20 +67,26 @@ export default async function PelangganPage() {
         <h2 className="text-lg font-semibold text-ink-900">
           Pelanggan ({list.length})
         </h2>
-        <div className="flex items-center gap-3">
-          <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
-            <input placeholder="Search" className="input-base pl-10 !py-2.5" />
-          </div>
-          <button className="btn-secondary !py-2.5 !px-4">
-            <SlidersHorizontal className="h-4 w-4" /> Filter
-          </button>
-        </div>
+        <SearchFilterBar
+          searchPlaceholder="Cari nama, ID, WA, alamat..."
+          filters={[
+            {
+              key: "gender",
+              label: "Gender",
+              options: [
+                { value: "Laki-laki", label: "Laki-laki" },
+                { value: "Perempuan", label: "Perempuan" },
+              ],
+            },
+          ]}
+        />
       </div>
 
       {list.length === 0 ? (
         <div className="card p-12 text-center">
-          <p className="text-ink-500">Belum ada pelanggan. Klik &quot;Add New&quot; untuk menambahkan.</p>
+          <p className="text-ink-500">
+            {q || gender ? "Tidak ada hasil." : "Belum ada pelanggan. Klik \"Add New\" untuk menambahkan."}
+          </p>
         </div>
       ) : (
         <div className="card p-2 overflow-x-auto">
@@ -77,15 +117,14 @@ export default async function PelangganPage() {
                   <Td>{p.noWa}</Td>
                   <Td className="max-w-[260px]">{p.alamat}</Td>
                   <Td>
-                    <StatusBadge value={p.gender} />
+                    <StatusBadge value={p.gender} withChevron={false} />
                   </Td>
                   <Td>
-                    <Link
-                      href={`/pelanggan/${p.code}`}
-                      className="text-ink-500 hover:text-ink-900 inline-block"
-                    >
-                      <MoreHorizontal className="h-5 w-5" />
-                    </Link>
+                    <RowActions
+                      detailHref={`/pelanggan/${p.code}`}
+                      onDelete={async () => deletePelangganAction(p.code) as Promise<{ error?: string } | void>}
+                      deleteConfirm={`Hapus pelanggan ${p.nama}?`}
+                    />
                   </Td>
                 </tr>
               ))}

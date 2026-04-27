@@ -2,15 +2,49 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { DashboardShell } from "@/components/DashboardShell";
 import { Topbar } from "@/components/Topbar";
+import { SearchFilterBar } from "@/components/SearchFilterBar";
+import { ExportButton } from "@/components/ExportButton";
 import { formatRupiah } from "@/lib/format";
 import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function PembayaranPage() {
+export default async function PembayaranPage({
+  searchParams,
+}: {
+  searchParams: { q?: string; statusBayar?: string };
+}) {
+  const q = searchParams.q?.trim();
+  const statusBayar = searchParams.statusBayar;
+
   const orders = await prisma.order.findMany({
+    where: {
+      AND: [
+        statusBayar ? { statusBayar } : {},
+        q
+          ? {
+              OR: [
+                { code: { contains: q, mode: "insensitive" } },
+                { snapshotNama: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {},
+      ],
+    },
     orderBy: { createdAt: "desc" },
     include: { payments: true },
+  });
+
+  const csvRows = orders.map((p) => {
+    const dibayar = p.payments.reduce((a, b) => a + b.jumlah, 0);
+    return {
+      "ID Pesanan": p.code,
+      "Nama Pelanggan": p.snapshotNama,
+      Total: p.totalHarga,
+      Dibayar: dibayar,
+      Sisa: Math.max(0, p.totalHarga - dibayar),
+      Status: p.statusBayar,
+    };
   });
 
   return (
@@ -18,17 +52,39 @@ export default async function PembayaranPage() {
       <Topbar title="Manajemen Pembayaran" showSearch={false} />
 
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-semibold text-ink-900">
-          Riwayat Pembayaran ({orders.length})
-        </h2>
+        <div className="flex items-center gap-3">
+          <ExportButton rows={csvRows} filename="pembayaran" />
+        </div>
         <Link href="/pembayaran/new" className="btn-primary !py-2.5 !px-4">
           <Plus className="h-4 w-4" /> Add New
         </Link>
       </div>
 
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-ink-900">
+          Riwayat Pembayaran ({orders.length})
+        </h2>
+        <SearchFilterBar
+          searchPlaceholder="Cari ID, pelanggan..."
+          filters={[
+            {
+              key: "statusBayar",
+              label: "Status Bayar",
+              options: [
+                { value: "Belum Bayar", label: "Belum Bayar" },
+                { value: "DP", label: "DP" },
+                { value: "Lunas", label: "Lunas" },
+              ],
+            },
+          ]}
+        />
+      </div>
+
       {orders.length === 0 ? (
         <div className="card p-12 text-center">
-          <p className="text-ink-500">Belum ada pesanan untuk dibayar.</p>
+          <p className="text-ink-500">
+            {q || statusBayar ? "Tidak ada hasil." : "Belum ada pesanan untuk dibayar."}
+          </p>
         </div>
       ) : (
         <div className="card p-2 overflow-x-auto">

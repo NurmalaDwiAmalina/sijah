@@ -9,7 +9,9 @@ import {
   ImageIcon,
   Plus,
   Trash2,
+  X,
 } from "lucide-react";
+import { useRef } from "react";
 import { createPesananAction } from "@/lib/actions/pesanan";
 import { formatRupiah } from "@/lib/format";
 
@@ -35,10 +37,28 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
   const [tglMasuk, setTglMasuk] = useState("");
   const [tglEstimasi, setTglEstimasi] = useState("");
   const [catatan, setCatatan] = useState("");
+  const [foto, setFoto] = useState<string | null>(null);
+  const [fotoErr, setFotoErr] = useState<string | null>(null);
+  const fotoRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<Record<string, ItemRow>>({});
   const [biaya, setBiaya] = useState<Biaya[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  function handleFoto(file: File) {
+    setFotoErr(null);
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setFotoErr("Format harus JPG/PNG/WebP");
+      return;
+    }
+    if (file.size > 1024 * 1024) {
+      setFotoErr("Maksimal 1MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setFoto(reader.result as string);
+    reader.readAsDataURL(file);
+  }
 
   const selectedCustomer = customers.find((c) => c.code === customerCode);
   const ukuran = selectedCustomer?.measurements ?? [];
@@ -86,6 +106,7 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
         tglMasuk,
         tglEstimasi,
         catatan,
+        fotoReferensi: foto,
         items,
         biaya: biaya.filter((b) => b.label.trim() && b.amount > 0),
       });
@@ -348,15 +369,43 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
 
         <div className="mt-5">
           <label className="label-base">Referensi Gambar</label>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Upload gambar referensi (opsional, segera hadir)"
-              disabled
-              className="input-base pr-10 disabled:bg-ink-50"
-            />
-            <ImageIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
-          </div>
+          <input
+            ref={fotoRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFoto(f);
+            }}
+          />
+          {foto ? (
+            <div className="relative inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={foto}
+                alt="referensi"
+                className="h-40 rounded-xl border border-ink-200 object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => setFoto(null)}
+                className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full bg-[#FF4B4B] text-white shadow"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fotoRef.current?.click()}
+              className="flex w-full items-center justify-between rounded-xl border-2 border-dashed border-ink-200 bg-white px-4 py-6 text-sm text-ink-500 hover:border-brand-500 hover:bg-brand-50/30 transition"
+            >
+              <span>Klik untuk upload gambar referensi (JPG/PNG/WebP, max 1MB)</span>
+              <ImageIcon className="h-5 w-5 text-ink-400" />
+            </button>
+          )}
+          {fotoErr && <p className="mt-1 text-xs text-[#FF4B4B]">{fotoErr}</p>}
         </div>
 
         <div className="mt-5">

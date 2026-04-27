@@ -15,7 +15,11 @@ export default async function ProfilePage() {
       <Topbar title={`Selamat datang, ${user.username}!`} />
       <h2 className="text-xl font-bold text-ink-900 mb-5">Detail Profile</h2>
       <ProfileForm
-        initial={{ username: user.username, email: user.email }}
+        initial={{
+          username: user.username,
+          email: user.email,
+          avatar: user.avatar,
+        }}
       />
     </DashboardShell>
   );

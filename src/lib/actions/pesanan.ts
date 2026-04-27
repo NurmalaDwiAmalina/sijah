@@ -24,6 +24,7 @@ export async function createPesananAction(input: {
   tglMasuk: string;
   tglEstimasi: string;
   catatan?: string;
+  fotoReferensi?: string | null;
   items: ItemInput[];
   biaya: BiayaInput[];
 }) {
@@ -77,6 +78,7 @@ export async function createPesananAction(input: {
       tglMasuk: parseDate(input.tglMasuk),
       tglEstimasi: parseDate(input.tglEstimasi),
       catatan: input.catatan?.trim() || null,
+      fotoReferensi: input.fotoReferensi || null,
       totalHarga: total,
       snapshotNama: customer.nama,
       snapshotNoWa: customer.noWa,
