@@ -43,7 +43,9 @@ export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-ink-200 flex flex-col">
       <div className="px-6 py-6">
-        <Logo withTagline />
+        <Link href="/dashboard" className="hover:opacity-80 transition">
+          <Logo withTagline />
+        </Link>
       </div>
 
       <nav className="flex-1 px-3 pb-6">
