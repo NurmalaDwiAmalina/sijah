@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const {
       customerId,
       judul,
-      deskripsi,
+      catatan,
       tglEstimasi,
       measurements,
     } = body;
@@ -32,26 +32,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Create measurement if provided
-    let measurementId: string | undefined;
     if (measurements) {
-      const measurement = await prisma.measurement.create({
+      await prisma.measurement.create({
         data: {
           customerId,
           judul: measurements.judul || "Ukuran Default",
           kategori: measurements.kategori || "Atasan",
-          lingkarLeher: measurements.lingkarLeher ? parseInt(measurements.lingkarLeher) : 0,
-          lebarBahu: measurements.lebarBahu ? parseInt(measurements.lebarBahu) : 0,
-          lingkarDada: measurements.lingkarDada ? parseInt(measurements.lingkarDada) : 0,
-          lingkarPinggang: measurements.lingkarPinggang ? parseInt(measurements.lingkarPinggang) : 0,
-          panjangLengan: measurements.panjangLengan ? parseInt(measurements.panjangLengan) : 0,
-          panjangBaju: measurements.panjangBaju ? parseInt(measurements.panjangBaju) : 0,
-          lingkarPinggul: measurements.lingkarPinggul ? parseInt(measurements.lingkarPinggul) : 0,
-          lingkarPaha: measurements.lingkarPaha ? parseInt(measurements.lingkarPaha) : 0,
-          panjangCelana: measurements.panjangCelana ? parseInt(measurements.panjangCelana) : 0,
+          lingkarLeher: measurements.lingkarLeher ? parseInt(measurements.lingkarLeher) : undefined,
+          lebarBahu: measurements.lebarBahu ? parseInt(measurements.lebarBahu) : undefined,
+          lingkarDada: measurements.lingkarDada ? parseInt(measurements.lingkarDada) : undefined,
+          lingkarPinggang: measurements.lingkarPinggang ? parseInt(measurements.lingkarPinggang) : undefined,
+          panjangLengan: measurements.panjangLengan ? parseInt(measurements.panjangLengan) : undefined,
+          panjangBaju: measurements.panjangBaju ? parseInt(measurements.panjangBaju) : undefined,
+          lingkarPinggul: measurements.lingkarPinggul ? parseInt(measurements.lingkarPinggul) : undefined,
+          lingkarPaha: measurements.lingkarPaha ? parseInt(measurements.lingkarPaha) : undefined,
+          panjangCelana: measurements.panjangCelana ? parseInt(measurements.panjangCelana) : undefined,
           catatan: measurements.catatan || "",
         },
       });
-      measurementId = measurement.id;
     }
 
     // Create order
@@ -61,16 +59,14 @@ export async function POST(request: NextRequest) {
         code,
         customerId,
         judul,
-        deskripsi,
+        catatan,
+        tglMasuk: new Date(),
         tglEstimasi: new Date(tglEstimasi),
         status: "Antrean",
         statusBayar: "Belum Bayar",
         totalHarga: 0,
         snapshotNama: customer.nama,
         snapshotNoWa: customer.noWa,
-        snapshotAlamat: customer.alamat,
-        snapshotGender: customer.gender,
-        measurementId,
       },
     });
 

@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
     let customer = await prisma.customer.findFirst({
       where: {
         AND: [
-          { nama: { contains: nama, mode: "insensitive" } },
-          { noWa: { contains: noWa, mode: "insensitive" } },
+          { nama: { contains: nama } },
+          { noWa: { contains: noWa } },
         ],
       },
     });

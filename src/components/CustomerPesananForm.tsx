@@ -33,7 +33,7 @@ export function CustomerPesananForm() {
 
   // Order data
   const [judul, setJudul] = useState("");
-  const [deskripsi, setDeskripsi] = useState("");
+  const [catatanOrder, setCatatanOrder] = useState("");
   const [tglEstimasi, setTglEstimasi] = useState("");
 
   // Measurements
@@ -68,7 +68,7 @@ export function CustomerPesananForm() {
         body: JSON.stringify({
           customerId: customer.id,
           judul,
-          deskripsi,
+          catatan: catatanOrder,
           tglEstimasi: new Date(tglEstimasi),
           measurements: {
             kategori,
@@ -198,8 +198,8 @@ export function CustomerPesananForm() {
               Deskripsi Pesanan
             </label>
             <textarea
-              value={deskripsi}
-              onChange={(e) => setDeskripsi(e.target.value)}
+              value={catatanOrder}
+              onChange={(e) => setCatatanOrder(e.target.value)}
               placeholder="Jelaskan detail pesanan Anda"
               className="w-full px-4 py-3 border border-ink-200 rounded-lg focus:outline-none focus:border-brand-600 min-h-[100px]"
             />

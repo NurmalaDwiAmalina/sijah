@@ -14,8 +14,8 @@ export async function GET(request: NextRequest) {
     const orders = await prisma.order.findMany({
       where: {
         AND: [
-          { snapshotNama: { contains: nama, mode: "insensitive" } },
-          { snapshotNoWa: { contains: noWa, mode: "insensitive" } },
+          { snapshotNama: { contains: nama } },
+          { snapshotNoWa: { contains: noWa } },
         ],
       },
       include: { payments: true },
