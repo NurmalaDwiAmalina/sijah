@@ -11,7 +11,10 @@ export function middleware(req: NextRequest) {
   const session = req.cookies.get(COOKIE_NAME)?.value;
 
   if (ANON_ONLY.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
-    if (session) return NextResponse.redirect(new URL("/dashboard", req.url));
+    // Allow logged-in users to access home page and other anon routes
+    if (session && pathname !== "/") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
     return NextResponse.next();
   }
 
