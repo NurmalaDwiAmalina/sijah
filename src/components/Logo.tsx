@@ -17,7 +17,9 @@ export function Logo({
 
   return (
     <div className="flex items-center gap-2">
-      <Image src="/logo-sijah.png" alt="Sijah Logo" width={48} height={48} className={cn("w-auto", dim)} />
+      <div className={cn("flex-shrink-0", dim)}>
+        <Image src="/logo-sijah.png" alt="Sijah Logo" width={70} height={68} className="w-full h-full object-contain" />
+      </div>
       <div className="leading-tight">
         <p
           className={cn(
