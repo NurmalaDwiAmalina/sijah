@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { formatDate, formatRupiah } from "@/lib/format";
 import { ORDER_STATUS, STATUS_COLORS } from "@/lib/config";
+import type { Order, Payment } from "@prisma/client";
 
 export default async function CekStatusPage({
   searchParams,
@@ -12,15 +13,15 @@ export default async function CekStatusPage({
   const nama = searchParams.nama?.trim();
   const noWa = searchParams.noWa?.trim();
 
-  let orders = [];
+  let orders: (Order & { payments: Payment[] })[] = [];
   let found = false;
 
   if (nama && noWa) {
     orders = await prisma.order.findMany({
       where: {
         AND: [
-          { snapshotNama: { contains: nama, mode: "insensitive" } },
-          { snapshotNoWa: { contains: noWa, mode: "insensitive" } },
+          { snapshotNama: { contains: nama } },
+          { snapshotNoWa: { contains: noWa } },
         ],
       },
       include: { payments: true },
