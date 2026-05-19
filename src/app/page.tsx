@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { CekStatusModal } from "@/components/CekStatusModal";
@@ -145,14 +146,14 @@ export default function Home() {
 
             {/* Hero Image */}
             <div className="relative">
-              <div className="relative bg-gradient-to-br from-brand-100 to-brand-50 rounded-3xl overflow-hidden aspect-square">
-                <div className="absolute inset-0 bg-gradient-to-b from-green-900/20 to-transparent" />
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center text-ink-400">
-                    <div className="text-6xl mb-2">🪡</div>
-                    <p className="text-sm">Sewing Machine Image</p>
-                  </div>
-                </div>
+              <div className="relative rounded-3xl overflow-hidden aspect-square shadow-lg">
+                <Image
+                  src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&h=600&fit=crop"
+                  alt="Professional sewing machine with yellow and green fabric"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
               {/* Badge */}
               <div className="absolute -bottom-4 -right-4 bg-brand-600 text-white rounded-full w-20 h-20 flex items-center justify-center shadow-lg">
@@ -281,13 +282,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="relative">
-              <div className="rounded-2xl overflow-hidden aspect-square bg-ink-100">
-                <div className="w-full h-full flex items-center justify-center text-ink-400">
-                  <div className="text-center">
-                    <div className="text-6xl mb-2">✂️</div>
-                    <p className="text-sm">Workshop Image</p>
-                  </div>
-                </div>
+              <div className="rounded-2xl overflow-hidden aspect-square shadow-lg">
+                <Image
+                  src="https://images.unsplash.com/photo-1556821552-5f57f4e9fdf3?w=600&h=600&fit=crop"
+                  alt="Tailor workshop with sewing supplies and fabric"
+                  fill
+                  className="object-cover"
+                />
               </div>
             </div>
 
