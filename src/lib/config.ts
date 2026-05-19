@@ -8,9 +8,9 @@
 // BRAND
 // -------------------------------------------------------------
 export const BRAND = {
-  shortName: "sijah",
-  fullName: "AIS Sijah",
-  tagline: "Sistem Informasi Penjahit",
+  shortName: "sijah Asy-Syifa",
+  fullName: "sijah Asy-Syifa",
+  tagline: "Sistem Informasi Penjahit Syifa",
   description: "Platform manajemen operasional digital untuk UMKM penjahit",
   logoText: "SJ",
   // Greeting muncul di halaman auth (sebelum login → tidak bisa pakai username DB)
