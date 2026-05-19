@@ -128,7 +128,7 @@ export default async function CekStatusPage({
                             <div className="flex gap-2">
                               <span
                                 className="px-3 py-1 rounded-full text-white text-xs font-semibold"
-                                style={{ backgroundColor: STATUS_COLORS[order.status] }}
+                                style={{ backgroundColor: STATUS_COLORS[order.status as keyof typeof STATUS_COLORS] || "#666" }}
                               >
                                 {order.status}
                               </span>
