@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/cn";
 import { BRAND } from "@/lib/config";
 
@@ -16,17 +17,7 @@ export function Logo({
 
   return (
     <div className="flex items-center gap-2">
-      <div
-        className={cn(
-          "grid place-items-center rounded-xl font-bold",
-          dim,
-          isLight ? "bg-white text-brand-600" : "bg-brand-600 text-white"
-        )}
-      >
-        <span className={size === "lg" ? "text-xl" : "text-base"}>
-          {BRAND.logoText}
-        </span>
-      </div>
+      <Image src="/logo-sijah.png" alt="Sijah Logo" width={48} height={48} className={cn("w-auto", dim)} />
       <div className="leading-tight">
         <p
           className={cn(
