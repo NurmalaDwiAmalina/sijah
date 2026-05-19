@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 // dan beberapa lib (Prisma, lucide) bukan Edge-compatible. Cookie name disinkronkan
 // dengan VALIDATION.session.cookieName di config.ts secara manual.
 const COOKIE_NAME = "sijah_session";
-const ANON_ONLY = ["/login", "/forgot-password", "/reset-password"];
+const ANON_ONLY = ["/", "/login", "/forgot-password", "/reset-password", "/buat-pesanan"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
