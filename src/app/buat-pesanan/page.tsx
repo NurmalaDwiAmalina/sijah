@@ -20,10 +20,17 @@ export default function BuatPesananPage() {
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white rounded-2xl p-8 sm:p-12 shadow-sm border border-ink-100">
-          <h1 className="text-3xl font-bold text-ink-900 mb-3">Buat Pesanan Sekarang</h1>
-          <p className="text-ink-700 mb-8">
-            Lengkapi form pesanan berikut. Tim kami akan segera memproses pesananmu.
-          </p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-ink-900 mb-3">Buat Pesanan Sekarang</h1>
+              <p className="text-ink-700">
+                Lengkapi form pesanan berikut. Tim kami akan segera memproses pesananmu.
+              </p>
+            </div>
+            <Link href="/" className="px-4 py-2 text-ink-700 hover:text-brand-600 transition font-medium text-sm">
+              ← Kembali
+            </Link>
+          </div>
 
           <CustomerPesananForm />
         </div>
