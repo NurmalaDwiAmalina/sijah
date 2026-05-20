@@ -558,6 +558,444 @@ graph LR
 
 ---
 
+## 🏢 Business Process Explanation
+
+### **Proses 1: Manajemen Pelanggan (Person B)**
+
+#### 📌 Alur Bisnis
+```
+1. CUSTOMER MASUK (Baru/Lama)
+   ↓
+2. INPUT DATA PELANGGAN
+   - Nama lengkap
+   - Nomor WhatsApp (untuk komunikasi & pencarian status)
+   - Alamat (untuk pengiriman/pickup)
+   - Gender (untuk rekomendasi ukuran)
+   ↓
+3. SIMPAN KE DATABASE
+   - Sistem auto-generate customer code (CUST-001, CUST-002, dll)
+   ↓
+4. INPUT UKURAN BADAN
+   - Bisa multiple versions (Ukuran Formal, Ukuran Santai, dll)
+   - Pilih kategori: Atasan / Bawahan / Standar
+   - Input measurement fields sesuai kategori
+   - Tambah catatan khusus (mis: "Minta pinggang longgar")
+   ↓
+5. SIMPAN MEASUREMENT
+   - Linked ke customer
+   - Timestamped (created_at, updated_at)
+   ↓
+6. GUNAKAN UNTUK PESANAN
+   - Saat buat order, pilih dari measurement history
+   - Data di-snapshot ke order (jadi history pesanan tetap akurat)
+```
+
+#### 💼 Nilai Bisnis
+- **Accuracy**: Data ukuran tersimpan rapi, tidak tercecer
+- **Efficiency**: Pelanggan lama tidak perlu input ukuran lagi
+- **Traceability**: Punya riwayat ukuran pelanggan dari waktu ke waktu
+- **Flexibility**: 1 customer bisa punya banyak versi ukuran
+
+#### 👥 Contoh Real-Life
+```
+Customer: Ibu Siti
+- CUST-001
+- Nama: Siti Nurhaliza
+- No WA: 628123456789
+- Alamat: Jl. Merdeka 123
+
+Measurements:
+├─ Ukuran Formal 2025
+│  ├─ Kategori: Atasan
+│  ├─ Lingkar Dada: 88cm
+│  ├─ Panjang Baju: 65cm
+│  └─ Catatan: "Formal untuk acara"
+│
+└─ Ukuran Santai 2025
+   ├─ Kategori: Atasan
+   ├─ Lingkar Dada: 92cm
+   ├─ Panjang Baju: 70cm
+   └─ Catatan: "Untuk sehari-hari"
+```
+
+---
+
+### **Proses 2: Pencatatan Pesanan (Person C)**
+
+#### 📌 Alur Bisnis
+```
+1. CUSTOMER MEMESAN
+   - Admin atau customer datang dengan permintaan
+   ↓
+2. CARI/BUAT CUSTOMER DATA
+   - Jika pelanggan baru → input data pelanggan dulu
+   - Jika lama → cari di database
+   ↓
+3. INPUT DETAIL PESANAN
+   - Judul pesanan (mis: "Kebaya untuk nikahan")
+   - Tanggal masuk (hari pesanan diterima)
+   - Tanggal estimasi selesai (deadline pengerjaan)
+   - Jenis pakaian (Kebaya, Jas, Celana, dll)
+   - Catatan khusus (mis: "Ada bordir emas")
+   ↓
+4. PILIH UKURAN & ITEM
+   - Pilih dari measurement history pelanggan
+   - Input: jumlah × harga satuan = sub-total
+   - Bisa multi-item (mis: 2 item Kebaya @ Rp500k + 1 Sarung @ Rp150k)
+   ↓
+5. UPLOAD FOTO REFERENSI
+   - Foto model pakaian dari Pinterest/Instagram/dll
+   - Disimpan di Vercel Blob Cloud (bukan database)
+   ↓
+6. TAMBAH BIAYA TAMBAHAN
+   - Biaya kain premium
+   - Biaya bordir/jahit khusus
+   - Biaya expedite/kilat
+   - Dsb
+   ↓
+7. HITUNG TOTAL
+   - Subtotal (jumlah × harga) untuk semua items
+   - + Biaya tambahan
+   = Total Harga
+   ↓
+8. SIMPAN ORDER
+   - Status awal: "Antrean"
+   - Bayar status: "Belum Bayar"
+   - PENTING: Snapshot data pelanggan & ukuran ke order
+     (supaya kalau customer ubah data, order tetap pake data lama)
+   ↓
+9. GENERATE ORDER CODE
+   - Sistem auto-generate: ORD-001, ORD-002, dll
+   - Disimpan sebagai unique identifier
+```
+
+#### 💼 Nilai Bisnis
+- **Traceability**: Setiap pesanan punya unique ID & historical data
+- **Flexibility**: Bisa track multiple items dalam 1 order
+- **Accuracy**: Snapshot jamin history tidak berubah
+- **Documentation**: Foto referensi jadi bukti kesepakatan
+- **Cost Control**: Detail biaya transparent untuk customer
+
+#### 👥 Contoh Real-Life
+```
+Order: ORD-001 (terbuat 2026-05-20)
+├─ Customer: Ibu Siti (CUST-001)
+├─ Snapshot saat order dibuat:
+│  ├─ Nama: Siti Nurhaliza
+│  ├─ No WA: 628123456789
+│  └─ Measurement snapshot dari Ukuran Formal 2025
+│
+├─ Detail Pesanan:
+│  ├─ Judul: "Kebaya Pengikut Pengantin"
+│  ├─ Tgl Masuk: 2026-05-20
+│  ├─ Tgl Estimasi: 2026-06-10
+│  ├─ Jenis: Kebaya
+│  ├─ Catatan: "Ada bordir emas, permak di bagian pinggang"
+│
+├─ Items:
+│  ├─ Item 1: Ukuran Formal 2025 × 1 @ Rp500,000 = Rp500,000
+│  └─ Item 2: Sarung @ Rp100,000 = Rp100,000
+│  Subtotal: Rp600,000
+│
+├─ Biaya Tambahan:
+│  ├─ Bordir Emas Gelung: Rp300,000
+│  └─ Expedite (selesai 1 minggu): Rp150,000
+│
+├─ Total Harga: Rp1,050,000
+├─ Status: Antrean
+├─ Status Bayar: Belum Bayar
+└─ Foto Referensi: [Kebaya dari Pinterest] (cloud URL)
+```
+
+---
+
+### **Proses 3: Tracking Status Produksi (Person C)**
+
+#### 📌 Alur Bisnis
+```
+1. ORDER MASUK KE ANTRIAN
+   Status: "Antrean" ← Pesanan terdaftar, menunggu giliran produksi
+   ↓
+2. MULAI POTONG KAIN
+   Status: "Potong Kain" ← Kain sedang dipotong sesuai pola
+   - QC kain, marking pola, cutting
+   ↓
+3. PROSES JAHIT
+   Status: "Dijahit" ← Kain sedang dijahit
+   - Main sewing, detail sewing, attachment
+   ↓
+4. FITTING/PAS BADAN
+   Status: "Fitting" ← Pakaian dicoba & disesuaikan
+   - Pas badan, adjustment, final details
+   - Bisa ada revisi kalau perlu
+   ↓
+5. PRODUKSI SELESAI
+   Status: "Selesai" ← Pakaian jadi & QC final
+   - Ready untuk pengambilan
+   - Waiting for customer to pick up
+   ↓
+6. DIAMBIL CUSTOMER
+   Status: "Diambil" ← Order complete
+   - Customer telah mengambil pesanannya
+   - Transaction finished
+```
+
+#### 💼 Nilai Bisnis
+- **Visibility**: Customer bisa lihat progress pesanannya real-time
+- **Accountability**: Admin track setiap tahap produksi
+- **Deadline Management**: Lihat kapan harus selesai
+- **Customer Satisfaction**: Transparency meningkatkan kepercayaan
+- **Workflow Optimization**: Tahu bottleneck mana
+
+#### 🎨 Status Visual
+```
+Antrean        📍 Order baru, waiting queue
+   ↓
+Potong Kain    📍 Fabric cutting in progress
+   ↓
+Dijahit        📍 Sewing in progress (longest phase)
+   ↓
+Fitting        📍 Tailoring adjustments
+   ↓
+Selesai        📍 Ready for pickup
+   ↓
+Diambil        ✅ Order completed
+```
+
+---
+
+### **Proses 4: Pencatatan Pembayaran & Auto-Lunas (Person A)**
+
+#### 📌 Alur Bisnis
+```
+1. CUSTOMER MAU BAYAR
+   ↓
+2. ADMIN BUKA HALAMAN PEMBAYARAN
+   - Pilih order yang ingin dicatat pembayarannya
+   - Sistem tampilkan:
+     * Total harga yang harus dibayar
+     * Riwayat pembayaran sebelumnya (jika ada)
+     * Sisa yang belum dibayar
+   ↓
+3. INPUT PEMBAYARAN
+   - Nominal yang dibayarkan (bisa DP/sebagian atau lunas)
+   - Metode: Tunai atau Transfer
+   - Catatan (mis: "Via BCA Transfer")
+   ↓
+4. SIMPAN PEMBAYARAN
+   - Sistem auto-generate payment code: PMT-001, PMT-002, dll
+   - Timestamp: kapan pembayaran dicatat
+   ↓
+5. SISTEM CEK AUTO-LUNAS ⭐ SMART LOGIC
+   - Hitung: Total pembayaran (sum semua payment records)
+   
+   IF Total Bayar >= Total Harga THEN
+      ✅ Status Pembayaran = "Lunas"
+   ELSE
+      ⚠️ Status Pembayaran = "DP"
+   END
+   
+   ↓
+6. UPDATE ORDER STATUS
+   - Jika lunas → customer tidak perlu bayar lagi
+   - Jika DP → sisa tagihan masih ada (customer ingat bayar)
+   ↓
+7. DISPLAY RIWAYAT
+   - Admin bisa lihat semua pembayaran per order
+   - Tracking siapa bayar, kapan, berapa, metode apa
+```
+
+#### 💼 Nilai Bisnis
+- **Automation**: Tidak perlu manual hitung sisa bayar
+- **Accuracy**: Sistem auto-check, tidak ada human error
+- **Transparency**: Customer & admin jelas sisa/lunas
+- **Audit Trail**: Riwayat pembayaran tersimpan lengkap
+- **Flexibility**: Bisa terima pembayaran bertahap (DP → Lunas)
+
+#### 👥 Contoh Real-Life
+```
+Order: ORD-001 (Total: Rp1,050,000)
+
+Payment 1 (PMT-001):
+├─ Tanggal: 2026-05-21
+├─ Nominal: Rp500,000 (DP 50%)
+├─ Metode: Tunai
+└─ Status: DP (Lunas: Rp500,000 / Rp1,050,000)
+
+Payment 2 (PMT-002):
+├─ Tanggal: 2026-06-05
+├─ Nominal: Rp550,000 (Lunasan)
+├─ Metode: Transfer BCA
+└─ Status: ✅ LUNAS (Total: Rp1,050,000 / Rp1,050,000)
+
+---
+
+Timeline:
+21 Mei  → Bayar Rp500k (DP) → Sisa: Rp550,000 → Status: DP
+05 Juni → Bayar Rp550k → Total = Rp1,050k → Status: ✅ LUNAS
+```
+
+#### 🔔 Important Logic
+```
+Auto-Lunas Calculation:
+
+Total Harga: Rp1,000,000
+
+Case 1: Pembayaran Rp600,000
+  → Status: "DP" (Belum lunas)
+  → Sisa: Rp400,000
+  → Customer inget harus bayar Rp400,000 lagi
+
+Case 2: Pembayaran Rp1,000,000
+  → Status: "Lunas" (Selesai bayar)
+  → Sisa: Rp0
+  → Selesai transaksi
+
+Case 3: Pembayaran Rp1,200,000 (overpay)
+  → Status: "Lunas" (Tetap lunas, gak perlu bayar lagi)
+  → Sisa: Rp0 (tidak bisa negative)
+  → Kembalian: Rp200,000 (catat di catatan)
+```
+
+---
+
+### **Proses 5: Cek Status Publik (Person C)**
+
+#### 📌 Alur Bisnis (Customer Perspective)
+```
+1. CUSTOMER INGIN CARI PESANAN
+   - Buka halaman home sijah.asy-syifa.com
+   - Lihat tombol "Cek Status Jahitan"
+   ↓
+2. KLIK TOMBOL CEK STATUS
+   - Modal/form terbuka
+   - Input 2 field: Nama + No. WhatsApp
+   (Data ini yang customer input saat pertama kali order)
+   ↓
+3. SUBMIT PENCARIAN
+   - Sistem cari di database
+   - Query: WHERE snapshotNama = ? AND snapshotNoWa = ?
+   (Pake snapshot, bukan customer data yang bisa berubah)
+   ↓
+4. LIHAT HASIL PENCARIAN
+   - Jika ada order ditemukan:
+     * Kode pesanan (ORD-001)
+     * Status produksi (warna-coded: merah=antrean, dll)
+     * Status pembayaran (Belum Bayar / DP / Lunas)
+     * Total harga pesanan
+     * Berapa yang sudah dibayar
+     * Sisa yang harus dibayar (jika ada)
+     * Deadline pengerjaan
+   
+   - Jika tidak ada order:
+     * "Pesanan tidak ditemukan"
+     * Saran: Cek nama dan nomor WA
+   ↓
+5. LIHAT DETAIL
+   - Customer bisa lihat berapa lama lagi
+   - Tahu status produksi sekarang
+   - Tahu berapa sisa yang harus dibayar
+   ↓
+6. HUBUNGI ADMIN (jika perlu)
+   - Whatsapp ke admin untuk pertanyaan lanjutan
+```
+
+#### 💼 Nilai Bisnis
+- **Self-Service**: Customer bisa cek sendiri, kurangi chat/telepon ke admin
+- **24/7 Access**: Cek status kapan saja, tidak perlu hubungi toko
+- **Transparency**: Jelas dimana pesanan & berapa hutang
+- **Customer Satisfaction**: Rasa diperhatikan, bukan "gelap"
+- **Reduce Admin Work**: Admin tidak perlu reply "pesanan mu di mana"
+
+#### 👥 Contoh Real-Life
+```
+Customer: Ibu Siti mau cek pesanan
+
+Input:
+- Nama: Siti Nurhaliza
+- No WA: 628123456789
+
+Output (found!):
+┌─────────────────────────────────────┐
+│ PESANAN: ORD-001                    │
+│ Status: 🟡 DIJAHIT (yellow)         │
+│ Bayar:  🟠 DP (orange)              │
+├─────────────────────────────────────┤
+│ Pesanan: Kebaya Pengantin           │
+│ Total: Rp1,050,000                  │
+│ Bayar: Rp500,000 (DP)               │
+│ Sisa: Rp550,000                     │
+│ Deadline: 10 Juni 2026              │
+│                                     │
+│ [📄 Download Invoice]               │
+└─────────────────────────────────────┘
+
+Ibu Siti jadi tahu:
+- Pesanannya sedang dijahit ✅
+- Harus bayar sisa Rp550k ✅
+- Harus selesai sebelum 10 Juni ✅
+- Tidak perlu telpon admin lagi ✅
+```
+
+---
+
+### **Proses 6: Upload Foto Referensi (Person A)**
+
+#### 📌 Alur Bisnis
+```
+1. ADMIN UPLOAD FOTO SAAT BUAT ORDER
+   - Customer bawa foto referensi (dari Pinterest/Instagram)
+   - Admin upload via form "Referensi Gambar"
+   ↓
+2. VALIDASI FILE
+   - Sistem cek: Format JPG/PNG/WebP? ✅
+   - Sistem cek: Ukuran < 5MB? ✅
+   - Jika tidak lolos → error, minta re-upload
+   ↓
+3. UPLOAD KE CLOUD (Vercel Blob)
+   - File tidak disimpan di database (terlalu berat)
+   - File dikirim ke Vercel Blob Storage (cloud server)
+   - Sistem return: Public URL (https://...)
+   ↓
+4. SIMPAN URL KE DATABASE
+   - Database hanya simpan: "https://blob.vercel-storage.com/..."
+   - Bukan simpan seluruh file (efficient!)
+   ↓
+5. DISPLAY DI ORDER DETAIL
+   - Admin bisa lihat foto referensi di halaman detail pesanan
+   - Jahit jadi tahu harus model gimana
+   ↓
+6. PUBLIC CEK STATUS
+   - Customer juga bisa lihat foto referensi
+   - Di modal "Cek Status" → ada preview foto pesanannya
+```
+
+#### 💼 Nilai Bisnis
+- **Clarity**: Jahit tahu persis model yang diminta customer
+- **Reduce Miscommunication**: Foto lebih jelas dari deskripsi
+- **Cloud Storage**: Image tersimpan permanent di cloud (tidak hilang)
+- **Efficiency**: Database tidak jadi berat/bloat
+- **Production Quality**: Jahit bisa refer foto kapan aja saat produksi
+
+#### 🖼️ Contoh Real-Life
+```
+Order: ORD-001 "Kebaya Pengantin"
+
+Foto Referensi:
+├─ Source: Pinterest (Kebaya Sunda Modern)
+├─ Upload: 2026-05-20 (saat input order)
+├─ File: kebaya-referensi.png (2.3 MB)
+├─ Stored: Vercel Blob Cloud ☁️
+├─ URL: https://blob.vercel-storage.com/sijah-foto-1234567-abcdef
+│
+└─ Visibility:
+   ├─ Admin: Lihat di order detail page ✅
+   ├─ Jahit: Lihat saat produksi ✅
+   └─ Customer: Lihat di "Cek Status" public ✅
+```
+
+---
+
 ## 📈 Metrics
 
 - **Total Pages**: 15 (auth, pelanggan, pesanan, pembayaran, profile, dll)
