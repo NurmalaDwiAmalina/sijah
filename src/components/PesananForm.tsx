@@ -10,6 +10,7 @@ import {
   Plus,
   Trash2,
   X,
+  Loader,
 } from "lucide-react";
 import { useRef } from "react";
 import { createPesananAction } from "@/lib/actions/pesanan";
@@ -42,13 +43,14 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
   const [statusBayar, setStatusBayar] = useState<string>(PAYMENT_STATUS[0]);
   const [foto, setFoto] = useState<string | null>(null);
   const [fotoErr, setFotoErr] = useState<string | null>(null);
+  const [fotoUploading, setFotoUploading] = useState(false);
   const fotoRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<Record<string, ItemRow>>({});
   const [biaya, setBiaya] = useState<Biaya[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function handleFoto(file: File) {
+  async function handleFoto(file: File) {
     setFotoErr(null);
     const allowed = VALIDATION.upload.allowedImageTypes as readonly string[];
     if (!allowed.includes(file.type)) {
@@ -61,9 +63,31 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
       );
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => setFoto(reader.result as string);
-    reader.readAsDataURL(file);
+
+    setFotoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload/image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setFotoErr(data.error || "Upload gagal");
+        return;
+      }
+
+      const data = await response.json();
+      setFoto(data.url);
+    } catch (err) {
+      setFotoErr("Upload gagal, coba lagi");
+      console.error(err);
+    } finally {
+      setFotoUploading(false);
+    }
   }
 
   const selectedCustomer = customers.find((c) => c.code === customerCode);
@@ -382,6 +406,7 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
             type="file"
             accept={VALIDATION.upload.allowedAcceptString}
             className="hidden"
+            disabled={fotoUploading}
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) handleFoto(f);
@@ -398,7 +423,8 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
               <button
                 type="button"
                 onClick={() => setFoto(null)}
-                className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full bg-[#FF4B4B] text-white shadow"
+                disabled={fotoUploading}
+                className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full bg-[#FF4B4B] text-white shadow disabled:opacity-50"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -406,11 +432,16 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
           ) : (
             <button
               type="button"
+              disabled={fotoUploading}
               onClick={() => fotoRef.current?.click()}
-              className="flex w-full items-center justify-between rounded-xl border-2 border-dashed border-ink-200 bg-white px-4 py-6 text-sm text-ink-500 hover:border-brand-500 hover:bg-brand-50/30 transition"
+              className="flex w-full items-center justify-between rounded-xl border-2 border-dashed border-ink-200 bg-white px-4 py-6 text-sm text-ink-500 hover:border-brand-500 hover:bg-brand-50/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>Klik untuk upload gambar referensi (JPG/PNG/WebP, max 1MB)</span>
-              <ImageIcon className="h-5 w-5 text-ink-400" />
+              <span>{fotoUploading ? "Mengunggah..." : "Klik untuk upload gambar referensi (JPG/PNG/WebP, max 5MB)"}</span>
+              {fotoUploading ? (
+                <Loader className="h-5 w-5 text-ink-400 animate-spin" />
+              ) : (
+                <ImageIcon className="h-5 w-5 text-ink-400" />
+              )}
             </button>
           )}
           {fotoErr && <p className="mt-1 text-xs text-[#FF4B4B]">{fotoErr}</p>}

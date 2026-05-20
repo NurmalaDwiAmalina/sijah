@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, ClipboardList, ImageIcon, X } from "lucide-react";
+import { Calendar, ClipboardList, ImageIcon, X, Loader } from "lucide-react";
 import { updatePesananAction } from "@/lib/actions/pesanan";
 import { useToast } from "./Toast";
 import { ORDER_STATUS, PAYMENT_STATUS, VALIDATION } from "@/lib/config";
@@ -31,9 +31,10 @@ export function PesananEditForm({
   const [statusBayar, setStatusBayar] = useState(initial.statusBayar);
   const [tglEstimasi, setTglEstimasi] = useState(initial.tglEstimasi);
   const [foto, setFoto] = useState<string | null>(initial.fotoReferensi);
+  const [fotoUploading, setFotoUploading] = useState(false);
   const fotoRef = useRef<HTMLInputElement>(null);
 
-  function handleFoto(file: File) {
+  async function handleFoto(file: File) {
     const allowed = VALIDATION.upload.allowedImageTypes as readonly string[];
     if (!allowed.includes(file.type)) {
       toast.error(`Format harus ${VALIDATION.upload.allowedExtensionsLabel}`);
@@ -45,9 +46,31 @@ export function PesananEditForm({
       );
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => setFoto(reader.result as string);
-    reader.readAsDataURL(file);
+
+    setFotoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload/image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        toast.error(data.error || "Upload gagal");
+        return;
+      }
+
+      const data = await response.json();
+      setFoto(data.url);
+    } catch (err) {
+      toast.error("Upload gagal, coba lagi");
+      console.error(err);
+    } finally {
+      setFotoUploading(false);
+    }
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -141,6 +164,7 @@ export function PesananEditForm({
             type="file"
             accept={VALIDATION.upload.allowedAcceptString}
             className="hidden"
+            disabled={fotoUploading}
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) handleFoto(f);
@@ -152,8 +176,9 @@ export function PesananEditForm({
               <img src={foto} alt="referensi" className="h-40 rounded-xl border border-ink-200 object-cover" />
               <button
                 type="button"
+                disabled={fotoUploading}
                 onClick={() => setFoto(null)}
-                className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full bg-[#FF4B4B] text-white"
+                className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full bg-[#FF4B4B] text-white disabled:opacity-50"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -161,11 +186,16 @@ export function PesananEditForm({
           ) : (
             <button
               type="button"
+              disabled={fotoUploading}
               onClick={() => fotoRef.current?.click()}
-              className="flex w-full items-center justify-between rounded-xl border-2 border-dashed border-ink-200 bg-white px-4 py-6 text-sm text-ink-500 hover:border-brand-500"
+              className="flex w-full items-center justify-between rounded-xl border-2 border-dashed border-ink-200 bg-white px-4 py-6 text-sm text-ink-500 hover:border-brand-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>Klik untuk upload referensi (JPG/PNG/WebP, max 1MB)</span>
-              <ImageIcon className="h-5 w-5 text-ink-400" />
+              <span>{fotoUploading ? "Mengunggah..." : "Klik untuk upload referensi (JPG/PNG/WebP, max 5MB)"}</span>
+              {fotoUploading ? (
+                <Loader className="h-5 w-5 text-ink-400 animate-spin" />
+              ) : (
+                <ImageIcon className="h-5 w-5 text-ink-400" />
+              )}
             </button>
           )}
         </div>

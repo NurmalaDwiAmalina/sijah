@@ -130,7 +130,7 @@ export const VALIDATION = {
   },
   upload: {
     avatarMaxBytes: 800 * 1024, // 800 KB
-    fotoReferensiMaxBytes: 1024 * 1024, // 1 MB
+    fotoReferensiMaxBytes: 5 * 1024 * 1024, // 5 MB
     allowedImageTypes: ["image/jpeg", "image/png", "image/webp"] as const,
     get allowedAcceptString() {
       return this.allowedImageTypes.join(",");
