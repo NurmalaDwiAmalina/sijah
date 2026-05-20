@@ -218,6 +218,346 @@ Diambil (picked up by customer)
 
 ---
 
+## 🗄️ Database Architecture (ERD)
+
+```mermaid
+erDiagram
+    USER ||--o{ SESSION : has
+    USER ||--o{ PASSWORD_RESET : "requests"
+    CUSTOMER ||--o{ MEASUREMENT : "has many"
+    CUSTOMER ||--o{ ORDER : "creates"
+    MEASUREMENT ||--o{ ORDER_ITEM : "used in"
+    ORDER ||--o{ ORDER_ITEM : "contains"
+    ORDER ||--o{ ADDITIONAL_COST : "has"
+    ORDER ||--o{ PAYMENT : "receives"
+    
+    USER {
+        string id PK
+        string email UK
+        string username
+        string password
+        string avatar
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    SESSION {
+        string id PK
+        string userId FK
+        datetime expiresAt
+    }
+    
+    PASSWORD_RESET {
+        string id PK
+        string token UK
+        string userId FK
+        datetime expiresAt
+        boolean used
+    }
+    
+    CUSTOMER {
+        string id PK
+        string code UK
+        string nama
+        string noWa
+        string alamat
+        string gender
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    MEASUREMENT {
+        string id PK
+        string customerId FK
+        string judul
+        string kategori
+        string catatan
+        float lingkarLeher
+        float lebarBahu
+        float lingkarDada
+        float lingkarPinggang
+        float panjangLengan
+        float panjangBaju
+        float lingkarPinggul
+        float lingkarPaha
+        float panjangCelana
+        string ukuranStandar
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    ORDER {
+        string id PK
+        string code UK
+        string customerId FK
+        string judul
+        datetime tglMasuk
+        datetime tglEstimasi
+        string jenisPakaian
+        string fotoReferensi
+        string status
+        string catatan
+        float totalHarga
+        string statusBayar
+        string snapshotNama
+        string snapshotNoWa
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    ORDER_ITEM {
+        string id PK
+        string orderId FK
+        string measurementId FK
+        string judulUkuran
+        string catatan
+        integer jumlah
+        float hargaSatuan
+        float subTotal
+        string snapshotData
+    }
+    
+    ADDITIONAL_COST {
+        string id PK
+        string orderId FK
+        string label
+        float amount
+    }
+    
+    PAYMENT {
+        string id PK
+        string code UK
+        string orderId FK
+        float jumlah
+        string metode
+        string catatan
+        datetime createdAt
+        datetime updatedAt
+    }
+```
+
+---
+
+## 🔄 System Flow Architecture
+
+```mermaid
+graph TB
+    subgraph "Public Access"
+        HOME["🏠 Home Page"]
+        CEK_STATUS["🔍 Cek Status Modal"]
+    end
+    
+    subgraph "Admin Dashboard"
+        LOGIN["🔐 Login Page"]
+        DASHBOARD["📊 Dashboard"]
+        PROFILE["👤 Profile"]
+    end
+    
+    subgraph "Customer Management (Person B)"
+        LIST_PELANGGAN["📋 List Pelanggan"]
+        NEW_PELANGGAN["➕ Create Pelanggan"]
+        DETAIL_PELANGGAN["👥 Detail Pelanggan"]
+        MEASUREMENTS["📏 Measurements"]
+    end
+    
+    subgraph "Order Management (Person C)"
+        LIST_PESANAN["📦 List Pesanan"]
+        NEW_PESANAN["➕ Create Pesanan"]
+        DETAIL_PESANAN["📄 Detail Pesanan"]
+        EDIT_PESANAN["✏️ Edit Pesanan"]
+    end
+    
+    subgraph "Payment Management (Person A)"
+        LIST_PEMBAYARAN["💰 List Pembayaran"]
+        NEW_PEMBAYARAN["➕ Create Pembayaran"]
+        EDIT_PEMBAYARAN["✏️ Edit Pembayaran"]
+    end
+    
+    subgraph "Backend Services (Person A)"
+        AUTH_API["🔑 Auth API"]
+        UPLOAD_API["☁️ Upload API"]
+        ORDERS_API["📦 Orders API"]
+    end
+    
+    HOME --> CEK_STATUS
+    CEK_STATUS --> ORDERS_API
+    LOGIN --> AUTH_API
+    AUTH_API --> DASHBOARD
+    DASHBOARD --> LIST_PELANGGAN
+    DASHBOARD --> LIST_PESANAN
+    DASHBOARD --> LIST_PEMBAYARAN
+    
+    LIST_PELANGGAN --> NEW_PELANGGAN
+    LIST_PELANGGAN --> DETAIL_PELANGGAN
+    DETAIL_PELANGGAN --> MEASUREMENTS
+    
+    LIST_PESANAN --> NEW_PESANAN
+    LIST_PESANAN --> DETAIL_PESANAN
+    DETAIL_PESANAN --> EDIT_PESANAN
+    NEW_PESANAN --> UPLOAD_API
+    EDIT_PESANAN --> UPLOAD_API
+    
+    LIST_PEMBAYARAN --> NEW_PEMBAYARAN
+    LIST_PEMBAYARAN --> EDIT_PEMBAYARAN
+```
+
+---
+
+## 📝 Order Creation Flow (Person C)
+
+```mermaid
+sequenceDiagram
+    actor User as Admin User
+    participant Form as Order Form
+    participant DB as Database
+    participant Cloud as Vercel Blob
+    
+    User->>Form: Select Customer
+    Form->>DB: Fetch customer details & measurements
+    DB-->>Form: Return customer & measurement list
+    
+    User->>Form: Fill order info (judul, tanggal, dll)
+    User->>Form: Select measurement items (quantity, harga)
+    User->>Form: Upload foto referensi
+    Form->>Cloud: POST /api/upload/image
+    Cloud-->>Form: Return image URL
+    
+    User->>Form: Add additional costs (biaya kain, dll)
+    User->>Form: Submit form
+    
+    Form->>DB: Create order with:
+    Note over DB: - snapshotNama (customer name at time of order)
+    Note over DB: - snapshotNoWa (customer phone at time of order)
+    Note over DB: - OrderItems (with snapshotData)
+    Note over DB: - fotoReferensi (URL from Vercel Blob)
+    Note over DB: - AdditionalCosts
+    Note over DB: - status = "Antrean"
+    Note over DB: - statusBayar = "Belum Bayar"
+    
+    DB-->>Form: Order created (ORD-001)
+    Form-->>User: ✅ Redirect to pesanan list
+```
+
+---
+
+## 💰 Payment Flow (Person A)
+
+```mermaid
+sequenceDiagram
+    actor User as Admin/User
+    participant Form as Payment Form
+    participant DB as Database
+    participant Logic as Auto-Lunas Logic
+    
+    User->>Form: Select Order
+    Form->>DB: Fetch order details
+    DB-->>Form: Return order (totalHarga, existing payments)
+    Form->>Form: Calculate remaining balance
+    
+    User->>Form: Input pembayaran (jumlah, metode)
+    User->>Form: Submit
+    
+    Form->>DB: Create Payment record
+    DB->>Logic: Calculate total paid vs total price
+    
+    alt Total Paid >= Total Price
+        Logic->>DB: Update Order statusBayar = "Lunas"
+        DB-->>Form: ✅ Payment recorded & auto-marked as LUNAS
+    else Total Paid < Total Price
+        Logic->>DB: Keep Order statusBayar = "DP"
+        DB-->>Form: ✅ Payment recorded (DP status)
+    end
+    
+    Form-->>User: ✅ Redirect to pembayaran list
+```
+
+---
+
+## 🎯 Status Tracking Flow (Person C)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Antrean: Order created
+    Antrean --> "Potong Kain": Admin update
+    "Potong Kain" --> Dijahit: Admin update
+    Dijahit --> Fitting: Admin update
+    Fitting --> Selesai: Admin update
+    Selesai --> Diambil: Customer pickup
+    Diambil --> [*]: Order completed
+    
+    Antrean -.-> Dibatalkan: Cancel
+    "Potong Kain" -.-> Dibatalkan: Cancel
+    Dibatalkan --> [*]: Order cancelled
+```
+
+---
+
+## 🔍 Public Status Check Flow (Person C)
+
+```mermaid
+sequenceDiagram
+    actor Customer as Customer (Public)
+    participant Modal as Cek Status Modal
+    participant API as /api/orders/search
+    participant DB as Database
+    
+    Customer->>Modal: Visit homepage or click "Cek Status"
+    Modal->>Customer: Show search form
+    Customer->>Modal: Input nama + noWa
+    
+    Modal->>API: GET /api/orders/search?nama=X&noWa=Y
+    API->>DB: Query WHERE snapshotNama=X AND snapshotNoWa=Y
+    DB-->>API: Return matching orders
+    
+    alt Orders found
+        API-->>Modal: Return orders with details
+        Modal->>Modal: Display order cards:
+        Note over Modal: - Order Code & Date
+        Note over Modal: - Status (color-coded)
+        Note over Modal: - Total harga
+        Note over Modal: - Dibayar amount
+        Note over Modal: - Sisa bayar
+        Note over Modal: - Deadline
+        Modal-->>Customer: ✅ View order status
+    else No orders found
+        API-->>Modal: Empty result
+        Modal-->>Customer: ❌ Show "Pesanan tidak ditemukan"
+    end
+```
+
+---
+
+## 📊 Data Snapshotting Illustration
+
+```mermaid
+graph LR
+    subgraph "Moment Order Created"
+        C["Customer:<br/>Nama: Budi<br/>NoWa: 628xxx"]
+        M["Measurement:<br/>Lingkar Dada: 90cm<br/>Panjang Baju: 70cm"]
+    end
+    
+    subgraph "Stored in Order"
+        SNAP["✅ Snapshot:<br/>snapshotNama: 'Budi'<br/>snapshotNoWa: '628xxx'<br/>snapshotData: {<br/>lingkarDada: 90,<br/>panjangBaju: 70<br/>}"]
+    end
+    
+    subgraph "Later..."
+        C2["Customer Updated:<br/>Nama: Budi Setiawan<br/>NoWa: 629xxx"]
+        M2["Measurement Changed:<br/>Lingkar Dada: 92cm<br/>Panjang Baju: 72cm"]
+    end
+    
+    subgraph "Order Remains Unchanged"
+        SNAP2["✅ Order Still Has:<br/>snapshotNama: 'Budi'<br/>snapshotNoWa: '628xxx'<br/>snapshotData: {<br/>lingkarDada: 90,<br/>panjangBaju: 70<br/>} ← NO CHANGE"]
+    end
+    
+    C --> SNAP
+    M --> SNAP
+    C2 -.-> SNAP2
+    M2 -.-> SNAP2
+    SNAP --> SNAP2
+```
+
+---
+
 ## 📈 Metrics
 
 - **Total Pages**: 15 (auth, pelanggan, pesanan, pembayaran, profile, dll)
