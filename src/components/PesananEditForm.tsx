@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, ClipboardList, ImageIcon, X, Loader } from "lucide-react";
+import { Calendar, ClipboardList, ImageIcon, X, Loader, User, Phone, DollarSign } from "lucide-react";
 import { updatePesananAction } from "@/lib/actions/pesanan";
 import { useToast } from "./Toast";
-import { ORDER_STATUS, PAYMENT_STATUS, VALIDATION } from "@/lib/config";
+import { ORDER_STATUS, PAYMENT_STATUS_BADGE, VALIDATION } from "@/lib/config";
 
 export function PesananEditForm({
   code,
@@ -20,6 +20,9 @@ export function PesananEditForm({
     statusBayar: string;
     tglEstimasi: string;
     fotoReferensi: string | null;
+    totalHarga: number;
+    snapshotNama: string;
+    snapshotNoWa: string;
   };
 }) {
   const router = useRouter();
@@ -28,10 +31,12 @@ export function PesananEditForm({
   const [judul, setJudul] = useState(initial.judul);
   const [catatan, setCatatan] = useState(initial.catatan);
   const [status, setStatus] = useState(initial.status);
-  const [statusBayar, setStatusBayar] = useState(initial.statusBayar);
   const [tglEstimasi, setTglEstimasi] = useState(initial.tglEstimasi);
   const [foto, setFoto] = useState<string | null>(initial.fotoReferensi);
   const [fotoUploading, setFotoUploading] = useState(false);
+  const [totalHarga, setTotalHarga] = useState(String(initial.totalHarga));
+  const [snapshotNama, setSnapshotNama] = useState(initial.snapshotNama);
+  const [snapshotNoWa, setSnapshotNoWa] = useState(initial.snapshotNoWa);
   const fotoRef = useRef<HTMLInputElement>(null);
 
   async function handleFoto(file: File) {
@@ -80,9 +85,11 @@ export function PesananEditForm({
         judul,
         catatan,
         status,
-        statusBayar,
         tglEstimasi,
         fotoReferensi: foto,
+        totalHarga: Number(totalHarga) || 0,
+        snapshotNama,
+        snapshotNoWa,
       });
       toast.success("Pesanan diperbarui", code);
       router.push(`/pesanan/${code}`);
@@ -99,7 +106,10 @@ export function PesananEditForm({
         </button>
       </div>
 
-      <div className="card p-7 space-y-5">
+      {/* Info Pesanan */}
+      <div className="card p-7 space-y-5 mb-5">
+        <h3 className="text-sm font-semibold text-ink-500 uppercase tracking-wide">Info Pesanan</h3>
+
         <div>
           <label className="label-base">Judul Pesanan</label>
           <div className="relative">
@@ -125,35 +135,61 @@ export function PesananEditForm({
           </div>
           <div>
             <label className="label-base">Status Pembayaran</label>
-            <select
-              value={statusBayar}
-              onChange={(e) => setStatusBayar(e.target.value)}
-              className="input-base"
-            >
-              {PAYMENT_STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <div className="flex items-center gap-2">
+              <span
+                className={
+                  "rounded-md px-3 py-1.5 text-sm font-semibold " +
+                  (PAYMENT_STATUS_BADGE[
+                    initial.statusBayar as keyof typeof PAYMENT_STATUS_BADGE
+                  ] ?? "bg-ink-100 text-ink-700")
+                }
+              >
+                {initial.statusBayar}
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-ink-400">
+              Dihitung otomatis dari total pembayaran yang masuk.
+            </p>
           </div>
         </div>
 
-        <div>
-          <label className="label-base">Tanggal Estimasi Selesai</label>
-          <div className="relative">
-            <input
-              type="date"
-              value={tglEstimasi}
-              onChange={(e) => setTglEstimasi(e.target.value)}
-              className="input-base pr-10"
-            />
-            <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400 pointer-events-none" />
+        <div className="grid md:grid-cols-2 gap-5">
+          <div>
+            <label className="label-base">Tanggal Estimasi Selesai</label>
+            <div className="relative">
+              <input
+                type="date"
+                value={tglEstimasi}
+                onChange={(e) => setTglEstimasi(e.target.value)}
+                className="input-base pr-10"
+              />
+              <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400 pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="label-base">Total Harga (Rp)</label>
+            <div className="relative">
+              <input
+                type="number"
+                min="0"
+                value={totalHarga}
+                onChange={(e) => setTotalHarga(e.target.value)}
+                placeholder="0"
+                className="input-base pr-10"
+              />
+              <DollarSign className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400 pointer-events-none" />
+            </div>
           </div>
         </div>
 
         <div>
           <label className="label-base">Catatan</label>
-          <input
+          <textarea
             value={catatan}
             onChange={(e) => setCatatan(e.target.value)}
-            className="input-base"
+            rows={3}
+            className="input-base resize-none"
           />
         </div>
 
@@ -198,6 +234,39 @@ export function PesananEditForm({
               )}
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Info Pelanggan */}
+      <div className="card p-7 space-y-5">
+        <h3 className="text-sm font-semibold text-ink-500 uppercase tracking-wide">Info Pelanggan</h3>
+
+        <div className="grid md:grid-cols-2 gap-5">
+          <div>
+            <label className="label-base">Nama Pelanggan</label>
+            <div className="relative">
+              <input
+                value={snapshotNama}
+                onChange={(e) => setSnapshotNama(e.target.value)}
+                placeholder="Nama pelanggan"
+                className="input-base pr-10"
+              />
+              <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400 pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="label-base">No. WhatsApp</label>
+            <div className="relative">
+              <input
+                value={snapshotNoWa}
+                onChange={(e) => setSnapshotNoWa(e.target.value)}
+                placeholder="No WhatsApp pelanggan"
+                className="input-base pr-10"
+              />
+              <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400 pointer-events-none" />
+            </div>
+          </div>
         </div>
       </div>
     </form>

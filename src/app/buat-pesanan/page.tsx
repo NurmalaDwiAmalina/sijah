@@ -16,7 +16,7 @@ export default function BuatPesananPage() {
             </div>
           </Link>
           <Link href="/" className="px-4 py-2 text-ink-700 hover:text-brand-600 transition font-medium text-sm">
-            ← Kembali ke Dashboard
+            ← Kembali ke Beranda
           </Link>
         </div>
       </div>

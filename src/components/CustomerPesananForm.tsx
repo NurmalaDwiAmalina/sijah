@@ -40,7 +40,6 @@ export function CustomerPesananForm() {
   const [kategori, setKategori] = useState("Atasan");
   const [measurements, setMeasurements] = useState<Record<string, string>>({});
   const [catatan, setCatatan] = useState("");
-  const [fotoReferensi, setFotoReferensi] = useState<File | null>(null);
 
   const currentFields = kategori === "Atasan" ? ATASAN_FIELDS : BAWAHAN_FIELDS;
 
@@ -59,6 +58,10 @@ export function CustomerPesananForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nama, noWa, alamat, gender }),
       });
+      if (!customerResponse.ok) {
+        const err = await customerResponse.json().catch(() => ({}));
+        throw new Error(err.error || "Gagal menyimpan data pelanggan");
+      }
       const customer = await customerResponse.json();
 
       // Create order
@@ -71,20 +74,27 @@ export function CustomerPesananForm() {
           catatan: catatanOrder,
           tglEstimasi: new Date(tglEstimasi),
           measurements: {
+            judul,
             kategori,
             ...measurements,
             catatan,
           },
         }),
       });
-
-      if (orderResponse.ok) {
-        alert("Pesanan berhasil dibuat! Kami akan segera menghubungi Anda.");
-        window.location.href = "/";
+      if (!orderResponse.ok) {
+        const err = await orderResponse.json().catch(() => ({}));
+        throw new Error(err.error || "Gagal membuat pesanan");
       }
+
+      alert("Pesanan berhasil dibuat! Kami akan segera menghubungi Anda.");
+      window.location.href = "/";
     } catch (error) {
       console.error("Error creating order:", error);
-      alert("Gagal membuat pesanan. Coba lagi.");
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Gagal membuat pesanan. Coba lagi."
+      );
     } finally {
       setLoading(false);
     }
@@ -294,18 +304,6 @@ export function CustomerPesananForm() {
               onChange={(e) => setCatatan(e.target.value)}
               placeholder="Catatan atau referensi khusus"
               className="w-full px-4 py-3 border border-ink-200 rounded-lg focus:outline-none focus:border-brand-600 min-h-[80px]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-ink-900 mb-2">
-              Upload Gambar Referensi (Opsional)
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFotoReferensi(e.target.files?.[0] || null)}
-              className="w-full px-4 py-3 border border-ink-200 rounded-lg focus:outline-none focus:border-brand-600"
             />
           </div>
 

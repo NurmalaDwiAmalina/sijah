@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
       judul,
       catatan,
       tglEstimasi,
+      fotoReferensi,
       measurements,
     } = body;
 
@@ -31,28 +32,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create measurement if provided
+    const num = (v: unknown) =>
+      v === undefined || v === null || v === "" ? undefined : parseFloat(String(v));
+
+    // Create measurement if provided (decimal-aware)
+    let measurement = null;
     if (measurements) {
-      await prisma.measurement.create({
+      measurement = await prisma.measurement.create({
         data: {
           customerId,
           judul: measurements.judul || "Ukuran Default",
           kategori: measurements.kategori || "Atasan",
-          lingkarLeher: measurements.lingkarLeher ? parseInt(measurements.lingkarLeher) : undefined,
-          lebarBahu: measurements.lebarBahu ? parseInt(measurements.lebarBahu) : undefined,
-          lingkarDada: measurements.lingkarDada ? parseInt(measurements.lingkarDada) : undefined,
-          lingkarPinggang: measurements.lingkarPinggang ? parseInt(measurements.lingkarPinggang) : undefined,
-          panjangLengan: measurements.panjangLengan ? parseInt(measurements.panjangLengan) : undefined,
-          panjangBaju: measurements.panjangBaju ? parseInt(measurements.panjangBaju) : undefined,
-          lingkarPinggul: measurements.lingkarPinggul ? parseInt(measurements.lingkarPinggul) : undefined,
-          lingkarPaha: measurements.lingkarPaha ? parseInt(measurements.lingkarPaha) : undefined,
-          panjangCelana: measurements.panjangCelana ? parseInt(measurements.panjangCelana) : undefined,
+          lingkarLeher: num(measurements.lingkarLeher),
+          lebarBahu: num(measurements.lebarBahu),
+          lingkarDada: num(measurements.lingkarDada),
+          lingkarPinggang: num(measurements.lingkarPinggang),
+          panjangLengan: num(measurements.panjangLengan),
+          panjangBaju: num(measurements.panjangBaju),
+          lingkarPinggul: num(measurements.lingkarPinggul),
+          lingkarPaha: num(measurements.lingkarPaha),
+          panjangCelana: num(measurements.panjangCelana),
           catatan: measurements.catatan || "",
         },
       });
     }
 
-    // Create order
+    // Create order — tautkan ukuran sebagai OrderItem agar muncul di detail
+    // admin. Harga belum diketahui saat pesanan dari pelanggan, jadi 0 dulu
+    // (admin mengisi totalHarga lewat form edit).
     const code = await nextOrderCode();
     const order = await prisma.order.create({
       data: {
@@ -62,11 +69,36 @@ export async function POST(request: NextRequest) {
         catatan,
         tglMasuk: new Date(),
         tglEstimasi: new Date(tglEstimasi),
+        fotoReferensi: fotoReferensi || null,
         status: "Antrean",
         statusBayar: "Belum Bayar",
         totalHarga: 0,
         snapshotNama: customer.nama,
         snapshotNoWa: customer.noWa,
+        ...(measurement && {
+          items: {
+            create: {
+              measurementId: measurement.id,
+              judulUkuran: measurement.judul,
+              catatan: measurement.catatan ?? null,
+              jumlah: 1,
+              hargaSatuan: 0,
+              subTotal: 0,
+              snapshotData: JSON.stringify({
+                kategori: measurement.kategori,
+                lingkarLeher: measurement.lingkarLeher,
+                lebarBahu: measurement.lebarBahu,
+                lingkarDada: measurement.lingkarDada,
+                lingkarPinggang: measurement.lingkarPinggang,
+                panjangLengan: measurement.panjangLengan,
+                panjangBaju: measurement.panjangBaju,
+                lingkarPinggul: measurement.lingkarPinggul,
+                lingkarPaha: measurement.lingkarPaha,
+                panjangCelana: measurement.panjangCelana,
+              }),
+            },
+          },
+        }),
       },
     });
 

@@ -28,6 +28,7 @@ export function PembayaranEditForm({
   const [catatan, setCatatan] = useState(initial.catatan);
 
   const sisaSetelahEdit = Math.max(0, order.totalHarga - totalDibayarLain - jumlah);
+  const overpay = order.totalHarga > 0 && jumlah > order.totalHarga - totalDibayarLain;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,7 +48,7 @@ export function PembayaranEditForm({
         <Link href={`/pembayaran/${code}`} className="btn-secondary !py-2.5 !px-5">
           Cancel
         </Link>
-        <button type="submit" disabled={pending || jumlah <= 0} className="btn-primary !py-2.5 !px-7">
+        <button type="submit" disabled={pending || jumlah <= 0 || overpay} className="btn-primary !py-2.5 !px-7">
           {pending ? "Menyimpan..." : "Simpan"}
         </button>
       </div>
@@ -77,6 +78,11 @@ export function PembayaranEditForm({
           <p className="mt-1 text-xs text-ink-500">
             Sisa setelah edit: <b>{formatRupiah(sisaSetelahEdit)}</b>
           </p>
+          {overpay && (
+            <p className="mt-1 text-xs text-[#FF4B4B]">
+              Jumlah melebihi sisa tagihan ({formatRupiah(order.totalHarga - totalDibayarLain)}).
+            </p>
+          )}
         </div>
 
         <div>

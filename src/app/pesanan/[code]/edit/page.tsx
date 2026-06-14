@@ -37,6 +37,9 @@ export default async function PesananEditPage({
           statusBayar: order.statusBayar,
           tglEstimasi: order.tglEstimasi.toISOString().slice(0, 10),
           fotoReferensi: order.fotoReferensi ?? null,
+          totalHarga: order.totalHarga,
+          snapshotNama: order.snapshotNama,
+          snapshotNoWa: order.snapshotNoWa,
         }}
       />
     </DashboardShell>

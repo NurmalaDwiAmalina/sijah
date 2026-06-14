@@ -138,7 +138,7 @@ export default function Home() {
                 >
                   Buat Pesanan
                 </Link>
-                <a href="https://wa.me/62855333343" target="_blank" rel="noopener noreferrer" className="px-6 py-3 border-2 border-brand-600 text-brand-600 rounded hover:bg-brand-50 transition font-semibold text-sm flex items-center justify-center gap-2">
+                <a href="https://wa.me/6289539333634" target="_blank" rel="noopener noreferrer" className="px-6 py-3 border-2 border-brand-600 text-brand-600 rounded hover:bg-brand-50 transition font-semibold text-sm flex items-center justify-center gap-2">
                   💬 Tanya-tanya WA
                 </a>
               </div>
@@ -395,7 +395,7 @@ export default function Home() {
               <p className="text-sm opacity-90 mb-4">
                 Punya pertanyaan terbuka dahulu? Kami siap membantu kebutuhan jahitmu.
               </p>
-              <a href="https://wa.me/62855333343" target="_blank" rel="noopener noreferrer" className="inline-block px-4 py-2 bg-white text-brand-600 rounded font-semibold text-sm hover:bg-brand-50 transition">
+              <a href="https://wa.me/6289539333634" target="_blank" rel="noopener noreferrer" className="inline-block px-4 py-2 bg-white text-brand-600 rounded font-semibold text-sm hover:bg-brand-50 transition">
                 Hubungi Kami
               </a>
             </div>
@@ -404,12 +404,12 @@ export default function Home() {
             <div className="space-y-4 text-sm">
               <div>
                 <p className="font-semibold mb-1 flex items-center gap-2">
-                  📱 <span>0855333343</span>
+                  📱 <span>0895393336343</span>
                 </p>
               </div>
               <div>
-                <p className="font-semibold mb-1 flex items-center gap-2">
-                  📍 <span>Dukuh, RT 0/RW 03, Kalisat, Kec. Sayang, Kab. Derma, 59563 Jawa Tengah, Indonesia</span>
+                <p className="font-semibold mb-1 flex items-start gap-2">
+                  📍 <span>Dukuhan, RT 01/RW 03, Kalisari, Kec. Sayung, Kab. Demak, 59563, Jawa Tengah, Indonesia</span>
                 </p>
               </div>
               <div>

@@ -121,9 +121,11 @@ export async function updatePesananAction(
     judul?: string;
     catatan?: string | null;
     status?: string;
-    statusBayar?: string;
     tglEstimasi?: string;
     fotoReferensi?: string | null;
+    totalHarga?: number;
+    snapshotNama?: string;
+    snapshotNoWa?: string;
   }
 ) {
   await requireUser();
@@ -131,12 +133,32 @@ export async function updatePesananAction(
   if (input.judul !== undefined) data.judul = input.judul.trim();
   if (input.catatan !== undefined) data.catatan = input.catatan;
   if (input.status !== undefined) data.status = input.status;
-  if (input.statusBayar !== undefined) data.statusBayar = input.statusBayar;
   if (input.tglEstimasi !== undefined && input.tglEstimasi)
     data.tglEstimasi = parseDate(input.tglEstimasi);
   if (input.fotoReferensi !== undefined) data.fotoReferensi = input.fotoReferensi;
+  if (input.totalHarga !== undefined) data.totalHarga = input.totalHarga;
+  if (input.snapshotNama !== undefined) data.snapshotNama = input.snapshotNama;
+  if (input.snapshotNoWa !== undefined) data.snapshotNoWa = input.snapshotNoWa;
 
-  await prisma.order.update({ where: { code }, data });
+  const order = await prisma.order.update({ where: { code }, data });
+
+  // statusBayar selalu dihitung dari pembayaran. Saat totalHarga berubah,
+  // status bisa bergeser (mis. dari Lunas → DP), jadi recalc di sini.
+  if (input.totalHarga !== undefined) {
+    const payments = await prisma.payment.findMany({ where: { orderId: order.id } });
+    const dibayar = payments.reduce((a, b) => a + b.jumlah, 0);
+    const [BELUM, DP, LUNAS] = PAYMENT_STATUS;
+    const statusBayar =
+      dibayar >= order.totalHarga && order.totalHarga > 0
+        ? LUNAS
+        : dibayar > 0
+        ? DP
+        : BELUM;
+    if (statusBayar !== order.statusBayar) {
+      await prisma.order.update({ where: { id: order.id }, data: { statusBayar } });
+    }
+  }
+
   revalidatePath("/pesanan");
   revalidatePath(`/pesanan/${code}`);
   revalidatePath("/dashboard");

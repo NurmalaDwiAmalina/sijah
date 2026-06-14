@@ -45,11 +45,14 @@ function PembayaranFormInner({ orders }: { orders: OrderOption[] }) {
   const order = orders.find((o) => o.code === orderCode);
   const subtotal = order?.items.reduce((a, b) => a + b.subTotal, 0) ?? 0;
   const biayaTotal = order?.biayaTambahan.reduce((a, b) => a + b.amount, 0) ?? 0;
-  const total = subtotal + biayaTotal;
+  // Total otoritatif = order.totalHarga (bisa diisi admin untuk pesanan dari
+  // pelanggan yang itemnya belum berharga), bukan hasil hitung item.
+  const total = order?.totalHarga ?? 0;
   const sisaSetelahBayar = order ? Math.max(0, total - order.dibayar - bayar) : 0;
   const sisaSekarang = order ? Math.max(0, total - order.dibayar) : 0;
 
-  const filled = order && bayar > 0 && metode;
+  const overpay = !!order && total > 0 && bayar > sisaSekarang;
+  const filled = order && bayar > 0 && metode && !overpay;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -229,6 +232,12 @@ function PembayaranFormInner({ orders }: { orders: OrderOption[] }) {
             </p>
           </div>
         </div>
+
+        {overpay && (
+          <p className="mt-3 text-sm text-[#FF4B4B]">
+            Jumlah melebihi sisa tagihan ({formatRupiah(sisaSekarang)}).
+          </p>
+        )}
 
         <div className="mt-6">
           <p className="label-base">Metode Pembayaran</p>

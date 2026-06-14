@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { nextPaymentCode } from "@/lib/code";
 import { requireUser } from "@/lib/auth";
 import { PAYMENT_STATUS, type PaymentMethod, type PaymentStatus } from "@/lib/config";
+import { formatRupiah } from "@/lib/format";
 
 async function recalcOrderStatusBayar(orderId: string) {
   const [order, payments] = await Promise.all([
@@ -16,7 +17,8 @@ async function recalcOrderStatusBayar(orderId: string) {
   const total = payments.reduce((a, b) => a + b.jumlah, 0);
   const [BELUM, DP, LUNAS] = PAYMENT_STATUS;
   let statusBayar: PaymentStatus = BELUM;
-  if (total >= order.totalHarga) statusBayar = LUNAS;
+  // Lunas hanya jika order sudah punya harga (totalHarga > 0) dan terbayar penuh.
+  if (order.totalHarga > 0 && total >= order.totalHarga) statusBayar = LUNAS;
   else if (total > 0) statusBayar = DP;
   await prisma.order.update({ where: { id: orderId }, data: { statusBayar } });
 }
@@ -34,8 +36,18 @@ export async function createPembayaranAction(input: {
 
   const order = await prisma.order.findUnique({
     where: { code: input.orderCode },
+    include: { payments: true },
   });
   if (!order) return { error: "Pesanan tidak ditemukan" };
+
+  // Cegah pembayaran melebihi sisa tagihan (hanya jika order sudah diberi harga).
+  if (order.totalHarga > 0) {
+    const sudah = order.payments.reduce((a, b) => a + b.jumlah, 0);
+    const sisa = order.totalHarga - sudah;
+    if (input.jumlah > sisa) {
+      return { error: `Jumlah melebihi sisa tagihan (${formatRupiah(sisa)})` };
+    }
+  }
 
   const code = await nextPaymentCode();
   await prisma.payment.create({
@@ -63,6 +75,21 @@ export async function updatePembayaranAction(
   const p = await prisma.payment.findUnique({ where: { code } });
   if (!p) return { error: "Pembayaran tidak ditemukan" };
   if (input.jumlah <= 0) return { error: "Jumlah bayar harus > 0" };
+
+  // Cegah edit yang membuat total pembayaran melebihi tagihan.
+  const order = await prisma.order.findUnique({
+    where: { id: p.orderId },
+    include: { payments: true },
+  });
+  if (order && order.totalHarga > 0) {
+    const dibayarLain = order.payments
+      .filter((x) => x.id !== p.id)
+      .reduce((a, b) => a + b.jumlah, 0);
+    const sisa = order.totalHarga - dibayarLain;
+    if (input.jumlah > sisa) {
+      return { error: `Jumlah melebihi sisa tagihan (${formatRupiah(sisa)})` };
+    }
+  }
 
   await prisma.payment.update({
     where: { id: p.id },

@@ -14,14 +14,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if customer exists
+    // Check if customer exists (exact match — `contains` bisa keliru
+    // menggabungkan "Budi" dengan "Budi Santoso")
     let customer = await prisma.customer.findFirst({
-      where: {
-        AND: [
-          { nama: { contains: nama } },
-          { noWa: { contains: noWa } },
-        ],
-      },
+      where: { nama, noWa },
     });
 
     // Create new customer if doesn't exist
