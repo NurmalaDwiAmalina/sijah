@@ -86,8 +86,9 @@ export function CustomerPesananForm() {
         throw new Error(err.error || "Gagal membuat pesanan");
       }
 
-      alert("Pesanan berhasil dibuat! Kami akan segera menghubungi Anda.");
-      window.location.href = "/";
+      const order = await orderResponse.json();
+      // Arahkan pelanggan ke halaman konfirmasi (bukan dashboard admin).
+      window.location.href = `/pesanan-berhasil/${order.code}`;
     } catch (error) {
       console.error("Error creating order:", error);
       alert(

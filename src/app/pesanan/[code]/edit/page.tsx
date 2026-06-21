@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { DashboardShell } from "@/components/DashboardShell";
 import { ChevronRight } from "lucide-react";
-import { PesananEditForm } from "@/components/PesananEditForm";
+import { PesananForm } from "@/components/PesananForm";
 
 export const dynamic = "force-dynamic";
 
@@ -12,9 +12,16 @@ export default async function PesananEditPage({
 }: {
   params: { code: string };
 }) {
-  const order = await prisma.order.findUnique({
-    where: { code: params.code },
-  });
+  const [order, customers] = await Promise.all([
+    prisma.order.findUnique({
+      where: { code: params.code },
+      include: { items: true, additionalCosts: true, customer: true },
+    }),
+    prisma.customer.findMany({
+      orderBy: { nama: "asc" },
+      include: { measurements: { orderBy: { createdAt: "asc" } } },
+    }),
+  ]);
   if (!order) notFound();
 
   return (
@@ -28,18 +35,41 @@ export default async function PesananEditPage({
         <span className="text-brand-600 font-medium">Edit</span>
       </nav>
 
-      <PesananEditForm
+      <PesananForm
+        mode="edit"
         code={order.code}
+        orphanSubtotal={order.items
+          .filter((it) => !it.measurementId)
+          .reduce((a, b) => a + b.subTotal, 0)}
+        customers={customers.map((c) => ({
+          code: c.code,
+          nama: c.nama,
+          measurements: c.measurements.map((m) => ({
+            id: m.id,
+            judul: m.judul,
+            catatan: m.catatan,
+          })),
+        }))}
         initial={{
           judul: order.judul,
+          customerCode: order.customer.code,
+          tglMasuk: order.tglMasuk.toISOString().slice(0, 10),
+          tglEstimasi: order.tglEstimasi.toISOString().slice(0, 10),
           catatan: order.catatan ?? "",
           status: order.status,
           statusBayar: order.statusBayar,
-          tglEstimasi: order.tglEstimasi.toISOString().slice(0, 10),
           fotoReferensi: order.fotoReferensi ?? null,
-          totalHarga: order.totalHarga,
-          snapshotNama: order.snapshotNama,
-          snapshotNoWa: order.snapshotNoWa,
+          items: order.items
+            .filter((it) => it.measurementId)
+            .map((it) => ({
+              measurementId: it.measurementId as string,
+              jumlah: it.jumlah,
+              hargaSatuan: it.hargaSatuan,
+            })),
+          biaya: order.additionalCosts.map((b) => ({
+            label: b.label,
+            amount: b.amount,
+          })),
         }}
       />
     </DashboardShell>

@@ -9,8 +9,9 @@ const COOKIE_NAME = "sijah_session";
 const AUTH_REDIRECT = ["/login", "/forgot-password", "/reset-password"];
 
 // Halaman publik: bisa diakses oleh siapa saja (termasuk admin yang sudah login)
-// /buat-pesanan dan /cek-status adalah halaman untuk pelanggan, tidak perlu session
-const PUBLIC_ROUTES = ["/", "/buat-pesanan", "/cek-status"];
+// /buat-pesanan, /cek-status, /pesanan-berhasil adalah halaman untuk pelanggan,
+// tidak perlu session
+const PUBLIC_ROUTES = ["/", "/buat-pesanan", "/cek-status", "/pesanan-berhasil"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

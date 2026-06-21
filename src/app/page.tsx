@@ -138,7 +138,7 @@ export default function Home() {
                 >
                   Buat Pesanan
                 </Link>
-                <a href="https://wa.me/6289539333634" target="_blank" rel="noopener noreferrer" className="px-6 py-3 border-2 border-brand-600 text-brand-600 rounded hover:bg-brand-50 transition font-semibold text-sm flex items-center justify-center gap-2">
+                <a href="https://wa.me/62895393336343" target="_blank" rel="noopener noreferrer" className="px-6 py-3 border-2 border-brand-600 text-brand-600 rounded hover:bg-brand-50 transition font-semibold text-sm flex items-center justify-center gap-2">
                   💬 Tanya-tanya WA
                 </a>
               </div>
@@ -148,17 +148,18 @@ export default function Home() {
             <div className="relative">
               <div className="relative rounded-3xl overflow-hidden aspect-square shadow-lg">
                 <Image
-                  src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&h=600&fit=crop"
-                  alt="Professional sewing machine with yellow and green fabric"
+                  src="/katalog-mesin-jahit.png"
+                  alt="Mesin jahit JUKI dengan kain hijau di workshop Penjahit Syifa"
                   fill
                   className="object-cover"
                   priority
                 />
               </div>
               {/* Badge */}
-              <div className="absolute -bottom-4 -right-4 bg-brand-600 text-white rounded-full w-20 h-20 flex items-center justify-center shadow-lg">
-                <div className="text-center text-sm font-bold">
-                  👍<br />Hasil Jahitan<br />yang Rapi
+              <div className="absolute -bottom-4 -right-4 bg-brand-600 text-white rounded-full w-24 h-24 flex flex-col items-center justify-center shadow-lg p-2">
+                <Image src="/ikon-jempol.png" alt="" width={28} height={28} className="h-7 w-7 mb-1" />
+                <div className="text-center text-[11px] font-bold leading-tight">
+                  Hasil Jahitan<br />yang Rapi
                 </div>
               </div>
             </div>
@@ -183,23 +184,32 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-brand-600 rounded-2xl p-8 text-white hover:shadow-lg transition">
-              <h3 className="text-2xl font-bold mb-4">Alasan</h3>
+              <div className="mb-4 grid h-16 w-16 place-items-center rounded-full bg-white">
+                <Image src="/ikon-atasan.png" alt="Ikon layanan atasan" width={36} height={36} className="h-9 w-9 object-contain" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Atasan</h3>
               <p className="text-sm leading-relaxed opacity-90">
-                Jahit Seragam sekolah, PDH, insiansi, zipperjas, Kaos Komunitas, Gamir, Kemaja formal, Jas Sekolah, dll
+                Jahit Seragam sekolah, PDH, instansi, jas, Kaos Komunitas, Gamis, Kemeja formal, Jas Sekolah, dll
               </p>
             </div>
 
             <div className="bg-brand-500 rounded-2xl p-8 text-white hover:shadow-lg transition">
-              <h3 className="text-2xl font-bold mb-4">Bahan-bahan</h3>
+              <div className="mb-4 grid h-16 w-16 place-items-center rounded-full bg-white">
+                <Image src="/ikon-bawahan.png" alt="Ikon layanan bawahan" width={36} height={36} className="h-9 w-9 object-contain" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Bawahan</h3>
               <p className="text-sm leading-relaxed opacity-90">
                 Jahit Celana Sekolah, Celana Formal, Celana Dinas, Training, Rok dll
               </p>
             </div>
 
             <div className="bg-brand-300 rounded-2xl p-8 text-white hover:shadow-lg transition">
+              <div className="mb-4 grid h-16 w-16 place-items-center rounded-full bg-white">
+                <Image src="/ikon-atribut.png" alt="Ikon layanan atribut" width={36} height={36} className="h-9 w-9 object-contain" />
+              </div>
               <h3 className="text-2xl font-bold mb-4">Atribut Lainnya</h3>
               <p className="text-sm leading-relaxed opacity-90">
-                Kaos/Topi, Cius Sekolah dan Atribut Lainnya
+                Kaos/Topi, Ciput Sekolah dan Atribut Lainnya
               </p>
             </div>
           </div>
@@ -281,14 +291,32 @@ export default function Home() {
       <section id="about" className="py-16 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="relative">
-              <div className="rounded-2xl overflow-hidden aspect-square shadow-lg">
+            <div className="space-y-4">
+              <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg">
                 <Image
-                  src="https://images.unsplash.com/photo-1556821552-5f57f4e9fdf3?w=600&h=600&fit=crop"
-                  alt="Tailor workshop with sewing supplies and fabric"
+                  src="/katalog-workshop.png"
+                  alt="Suasana workshop Penjahit Syifa"
                   fill
                   className="object-cover"
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow">
+                  <Image
+                    src="/katalog-meja-kerja.png"
+                    alt="Meja kerja dengan kain dan peralatan jahit"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow">
+                  <Image
+                    src="/katalog-benang.png"
+                    alt="Koleksi benang jahit aneka warna"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
               </div>
             </div>
 
@@ -371,15 +399,13 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-8">
             {/* Logo & Description */}
             <div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-6 mb-6 inline-block">
-                <div className="flex items-start gap-3">
-                  <div className="text-4xl font-black text-white">SJ</div>
-                  <div>
-                    <div className="font-black text-white text-lg leading-tight">sijah</div>
-                    <div className="text-xs opacity-90">Sistem Informasi Penjahit</div>
-                  </div>
-                </div>
-              </div>
+              <Image
+                src="/logo-sijah-putih.png"
+                alt="Logo sijah Asy-Syifa"
+                width={200}
+                height={54}
+                className="h-12 w-auto mb-6"
+              />
               <h3 className="font-bold text-lg mb-3">Siap Buat Pakaian?</h3>
               <p className="text-sm opacity-90 leading-relaxed">
                 Pesan sekarang dengan mudah dengan hasil jahitan yang rapi.
@@ -395,7 +421,7 @@ export default function Home() {
               <p className="text-sm opacity-90 mb-4">
                 Punya pertanyaan terbuka dahulu? Kami siap membantu kebutuhan jahitmu.
               </p>
-              <a href="https://wa.me/6289539333634" target="_blank" rel="noopener noreferrer" className="inline-block px-4 py-2 bg-white text-brand-600 rounded font-semibold text-sm hover:bg-brand-50 transition">
+              <a href="https://wa.me/62895393336343" target="_blank" rel="noopener noreferrer" className="inline-block px-4 py-2 bg-white text-brand-600 rounded font-semibold text-sm hover:bg-brand-50 transition">
                 Hubungi Kami
               </a>
             </div>

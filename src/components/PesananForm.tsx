@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Calendar,
   ChevronDown,
@@ -13,9 +14,15 @@ import {
   Loader,
 } from "lucide-react";
 import { useRef } from "react";
-import { createPesananAction } from "@/lib/actions/pesanan";
+import { createPesananAction, updatePesananAction } from "@/lib/actions/pesanan";
 import { formatRupiah } from "@/lib/format";
-import { ORDER_STATUS, PAYMENT_STATUS, VALIDATION } from "@/lib/config";
+import {
+  ORDER_STATUS,
+  PAYMENT_STATUS,
+  PAYMENT_STATUS_BADGE,
+  VALIDATION,
+} from "@/lib/config";
+import { useToast } from "./Toast";
 
 type CustomerOption = {
   code: string;
@@ -32,21 +39,65 @@ type ItemRow = {
 
 type Biaya = { label: string; amount: number };
 
-export function PesananForm({ customers }: { customers: CustomerOption[] }) {
-  const [judul, setJudul] = useState("");
-  const [customerCode, setCustomerCode] = useState("");
+type PesananInitial = {
+  judul: string;
+  customerCode: string;
+  tglMasuk: string;
+  tglEstimasi: string;
+  catatan: string;
+  status: string;
+  statusBayar: string;
+  fotoReferensi: string | null;
+  items: { measurementId: string; jumlah: number; hargaSatuan: number }[];
+  biaya: Biaya[];
+};
+
+export function PesananForm({
+  customers,
+  mode = "create",
+  code,
+  initial,
+  orphanSubtotal = 0,
+}: {
+  customers: CustomerOption[];
+  mode?: "create" | "edit";
+  code?: string;
+  initial?: PesananInitial;
+  // Subtotal item lama tanpa ukuran (tidak tampil di form) — ikut dihitung agar
+  // total di layar sama dengan total yang tersimpan.
+  orphanSubtotal?: number;
+}) {
+  const router = useRouter();
+  const toast = useToast();
+  const isEdit = mode === "edit";
+  const [judul, setJudul] = useState(initial?.judul ?? "");
+  const [customerCode, setCustomerCode] = useState(initial?.customerCode ?? "");
   const [open, setOpen] = useState(false);
-  const [tglMasuk, setTglMasuk] = useState("");
-  const [tglEstimasi, setTglEstimasi] = useState("");
-  const [catatan, setCatatan] = useState("");
-  const [status, setStatus] = useState<string>(ORDER_STATUS[0]);
-  const [statusBayar, setStatusBayar] = useState<string>(PAYMENT_STATUS[0]);
-  const [foto, setFoto] = useState<string | null>(null);
+  const [tglMasuk, setTglMasuk] = useState(initial?.tglMasuk ?? "");
+  const [tglEstimasi, setTglEstimasi] = useState(initial?.tglEstimasi ?? "");
+  const [catatan, setCatatan] = useState(initial?.catatan ?? "");
+  const [status, setStatus] = useState<string>(initial?.status ?? ORDER_STATUS[0]);
+  const [statusBayar, setStatusBayar] = useState<string>(
+    initial?.statusBayar ?? PAYMENT_STATUS[0]
+  );
+  const [foto, setFoto] = useState<string | null>(initial?.fotoReferensi ?? null);
   const [fotoErr, setFotoErr] = useState<string | null>(null);
   const [fotoUploading, setFotoUploading] = useState(false);
   const fotoRef = useRef<HTMLInputElement>(null);
-  const [rows, setRows] = useState<Record<string, ItemRow>>({});
-  const [biaya, setBiaya] = useState<Biaya[]>([]);
+  const [rows, setRows] = useState<Record<string, ItemRow>>(() =>
+    Object.fromEntries(
+      (initial?.items ?? []).map((it) => [
+        it.measurementId,
+        {
+          measurementId: it.measurementId,
+          selected: true,
+          jumlah: it.jumlah,
+          hargaSatuan: it.hargaSatuan,
+        },
+      ])
+    )
+  );
+  const [biaya, setBiaya] = useState<Biaya[]>(initial?.biaya ?? []);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -103,7 +154,7 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
     [rows, ukuran]
   );
   const biayaTotal = biaya.reduce((a, b) => a + (b.amount || 0), 0);
-  const total = subtotal + biayaTotal;
+  const total = subtotal + biayaTotal + orphanSubtotal;
 
   function setRow(id: string, patch: Partial<ItemRow>) {
     setRows((prev) => {
@@ -129,7 +180,30 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
         hargaSatuan: rows[u.id].hargaSatuan || 0,
       }));
 
+    const biayaClean = biaya.filter((b) => b.label.trim() && b.amount > 0);
+
     startTransition(async () => {
+      if (isEdit && code) {
+        const res = await updatePesananAction(code, {
+          judul,
+          customerCode,
+          tglMasuk,
+          tglEstimasi,
+          catatan,
+          fotoReferensi: foto,
+          status,
+          items,
+          biaya: biayaClean,
+        });
+        if (res?.error) {
+          setError(res.error);
+          return;
+        }
+        toast.success("Pesanan diperbarui", code);
+        router.push(`/pesanan/${code}`);
+        return;
+      }
+
       const res = await createPesananAction({
         judul,
         customerCode,
@@ -140,7 +214,7 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
         status,
         statusBayar,
         items,
-        biaya: biaya.filter((b) => b.label.trim() && b.amount > 0),
+        biaya: biayaClean,
       });
       if (res?.error) setError(res.error);
     });
@@ -153,7 +227,10 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
   return (
     <form onSubmit={handleSubmit}>
       <div className="flex items-center justify-end gap-3 mb-5 -mt-4">
-        <Link href="/pesanan" className="btn-secondary !py-2.5 !px-5">
+        <Link
+          href={isEdit && code ? `/pesanan/${code}` : "/pesanan"}
+          className="btn-secondary !py-2.5 !px-5"
+        >
           Cancel
         </Link>
         <button
@@ -172,7 +249,9 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
       )}
 
       <div className="card p-7">
-        <h2 className="text-xl font-bold text-ink-900">Buat Pesanan Baru</h2>
+        <h2 className="text-xl font-bold text-ink-900">
+          {isEdit ? "Edit Pesanan" : "Buat Pesanan Baru"}
+        </h2>
         <p className="text-sm text-ink-500 mt-1 mb-6">
           Lengkapi detail pesanan, pilih pelanggan, dan tentukan ukuran yang digunakan.
         </p>
@@ -212,9 +291,11 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
                     <button
                       type="button"
                       onClick={() => {
+                        // Reset ukuran hanya bila pelanggan benar-benar berganti,
+                        // supaya item yang sudah terisi tidak hilang saat klik ulang.
+                        if (c.code !== customerCode) setRows({});
                         setCustomerCode(c.code);
                         setOpen(false);
-                        setRows({});
                       }}
                       className="w-full text-left px-4 py-2.5 text-sm hover:bg-brand-50"
                     >
@@ -475,15 +556,35 @@ export function PesananForm({ customers }: { customers: CustomerOption[] }) {
           </div>
           <div>
             <label className="label-base">Status Pembayaran</label>
-            <select
-              value={statusBayar}
-              onChange={(e) => setStatusBayar(e.target.value)}
-              className="input-base"
-            >
-              {PAYMENT_STATUS.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+            {isEdit ? (
+              <>
+                <div>
+                  <span
+                    className={
+                      "inline-block rounded-md px-3 py-1.5 text-sm font-semibold " +
+                      (PAYMENT_STATUS_BADGE[
+                        statusBayar as keyof typeof PAYMENT_STATUS_BADGE
+                      ] ?? "bg-ink-100 text-ink-700")
+                    }
+                  >
+                    {statusBayar}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-xs text-ink-400">
+                  Dihitung otomatis dari total pembayaran yang masuk.
+                </p>
+              </>
+            ) : (
+              <select
+                value={statusBayar}
+                onChange={(e) => setStatusBayar(e.target.value)}
+                className="input-base"
+              >
+                {PAYMENT_STATUS.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
       </div>
