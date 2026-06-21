@@ -16,7 +16,7 @@ export function SearchFilterBar(props: {
   searchPlaceholder?: string;
 }) {
   return (
-    <Suspense fallback={<div className="w-72 h-10 rounded-xl bg-ink-100 animate-pulse" />}>
+    <Suspense fallback={<div className="w-full sm:w-72 h-10 rounded-xl bg-ink-100 animate-pulse" />}>
       <SearchFilterBarInner {...props} />
     </Suspense>
   );
@@ -76,8 +76,8 @@ function SearchFilterBarInner({
   const activeCount = filters.filter((f) => sp.get(f.key)).length + (sp.get("q") ? 1 : 0);
 
   return (
-    <div className="flex items-center gap-3">
-      <form onSubmit={handleSearch} className="relative w-72">
+    <div className="flex items-center gap-3 w-full sm:w-auto">
+      <form onSubmit={handleSearch} className="relative flex-1 sm:w-72 sm:flex-none">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
         <input
           value={q}

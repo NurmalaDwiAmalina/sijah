@@ -53,7 +53,7 @@ export default async function PesananDetailPage({
             <h2 className="text-xl font-bold text-ink-900">{order.judul}</h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="ID Pesanan">{order.code}</Field>
             <Field label="Status Pesanan">
               <StatusDropdown code={order.code} current={order.status} />

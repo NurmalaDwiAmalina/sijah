@@ -63,7 +63,7 @@ export default async function PelangganPage({
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <h2 className="text-lg font-semibold text-ink-900">
           Pelanggan ({list.length})
         </h2>

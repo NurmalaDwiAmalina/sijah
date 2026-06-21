@@ -11,11 +11,11 @@ export async function Topbar({
 }) {
   const user = await getCurrentUser();
   return (
-    <header className="flex items-center justify-between gap-4 mb-6">
-      <h1 className="text-2xl font-bold text-ink-900">{title}</h1>
-      <div className="flex items-center gap-4">
+    <header className="flex items-center justify-between gap-3 mb-6">
+      <h1 className="text-xl sm:text-2xl font-bold text-ink-900 truncate min-w-0">{title}</h1>
+      <div className="flex items-center gap-3 sm:gap-4 shrink-0">
         {showSearch && (
-          <div className="relative w-80">
+          <div className="relative hidden md:block w-56 lg:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
             <input
               placeholder="Search"

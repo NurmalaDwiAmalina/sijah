@@ -87,9 +87,9 @@ export default async function DashboardPage({
     <DashboardShell>
       <Topbar title={`Selamat datang, ${greetingName}!`} />
 
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
         <h2 className="text-xl font-bold text-ink-900">Dashboard Penjualan</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <ExportButton rows={csvRows} filename="dashboard-pesanan" />
           <SearchFilterBar
             searchPlaceholder="Cari pesanan..."
