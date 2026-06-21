@@ -2,6 +2,9 @@ import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { nextOrderCode } from "@/lib/code";
 
+const num = (v: unknown) =>
+  v === undefined || v === null || v === "" ? undefined : parseFloat(String(v));
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -11,6 +14,7 @@ export async function POST(request: NextRequest) {
       catatan,
       tglEstimasi,
       fotoReferensi,
+      items,
       measurements,
     } = body;
 
@@ -26,40 +30,71 @@ export async function POST(request: NextRequest) {
     });
 
     if (!customer) {
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+    }
+
+    // Dukung banyak produk dalam satu pesanan. Kompatibel mundur: kalau yang
+    // dikirim masih `measurements` tunggal, bungkus jadi satu item.
+    const itemList: any[] = Array.isArray(items) && items.length > 0
+      ? items
+      : measurements
+      ? [measurements]
+      : [];
+
+    if (itemList.length === 0) {
       return NextResponse.json(
-        { error: "Customer not found" },
-        { status: 404 }
+        { error: "Minimal satu produk" },
+        { status: 400 }
       );
     }
 
-    const num = (v: unknown) =>
-      v === undefined || v === null || v === "" ? undefined : parseFloat(String(v));
-
-    // Create measurement if provided (decimal-aware)
-    let measurement = null;
-    if (measurements) {
-      measurement = await prisma.measurement.create({
+    // Buat Measurement untuk tiap produk, lalu rangkai jadi OrderItem.
+    // Harga belum diketahui saat pesanan dari pelanggan, jadi 0 dulu (admin
+    // mengisi harga lewat form edit).
+    const orderItemsCreate = [];
+    for (const it of itemList) {
+      const measurement = await prisma.measurement.create({
         data: {
           customerId,
-          judul: measurements.judul || "Ukuran Default",
-          kategori: measurements.kategori || "Atasan",
-          lingkarLeher: num(measurements.lingkarLeher),
-          lebarBahu: num(measurements.lebarBahu),
-          lingkarDada: num(measurements.lingkarDada),
-          lingkarPinggang: num(measurements.lingkarPinggang),
-          panjangLengan: num(measurements.panjangLengan),
-          panjangBaju: num(measurements.panjangBaju),
-          lingkarPinggul: num(measurements.lingkarPinggul),
-          lingkarPaha: num(measurements.lingkarPaha),
-          panjangCelana: num(measurements.panjangCelana),
-          catatan: measurements.catatan || "",
+          judul: it.judul || "Ukuran",
+          kategori: it.kategori || "Atasan",
+          lingkarLeher: num(it.lingkarLeher),
+          lebarBahu: num(it.lebarBahu),
+          lingkarDada: num(it.lingkarDada),
+          lingkarPinggang: num(it.lingkarPinggang),
+          panjangLengan: num(it.panjangLengan),
+          panjangBaju: num(it.panjangBaju),
+          lingkarPinggul: num(it.lingkarPinggul),
+          lingkarPaha: num(it.lingkarPaha),
+          panjangCelana: num(it.panjangCelana),
+          catatan: it.catatan || "",
         },
+      });
+
+      const jumlah = Math.max(1, parseInt(String(it.jumlah ?? 1), 10) || 1);
+
+      orderItemsCreate.push({
+        measurementId: measurement.id,
+        judulUkuran: measurement.judul,
+        catatan: measurement.catatan ?? null,
+        jumlah,
+        hargaSatuan: 0,
+        subTotal: 0,
+        snapshotData: JSON.stringify({
+          kategori: measurement.kategori,
+          lingkarLeher: measurement.lingkarLeher,
+          lebarBahu: measurement.lebarBahu,
+          lingkarDada: measurement.lingkarDada,
+          lingkarPinggang: measurement.lingkarPinggang,
+          panjangLengan: measurement.panjangLengan,
+          panjangBaju: measurement.panjangBaju,
+          lingkarPinggul: measurement.lingkarPinggul,
+          lingkarPaha: measurement.lingkarPaha,
+          panjangCelana: measurement.panjangCelana,
+        }),
       });
     }
 
-    // Create order — tautkan ukuran sebagai OrderItem agar muncul di detail
-    // admin. Harga belum diketahui saat pesanan dari pelanggan, jadi 0 dulu
-    // (admin mengisi totalHarga lewat form edit).
     const code = await nextOrderCode();
     const order = await prisma.order.create({
       data: {
@@ -75,30 +110,7 @@ export async function POST(request: NextRequest) {
         totalHarga: 0,
         snapshotNama: customer.nama,
         snapshotNoWa: customer.noWa,
-        ...(measurement && {
-          items: {
-            create: {
-              measurementId: measurement.id,
-              judulUkuran: measurement.judul,
-              catatan: measurement.catatan ?? null,
-              jumlah: 1,
-              hargaSatuan: 0,
-              subTotal: 0,
-              snapshotData: JSON.stringify({
-                kategori: measurement.kategori,
-                lingkarLeher: measurement.lingkarLeher,
-                lebarBahu: measurement.lebarBahu,
-                lingkarDada: measurement.lingkarDada,
-                lingkarPinggang: measurement.lingkarPinggang,
-                panjangLengan: measurement.panjangLengan,
-                panjangBaju: measurement.panjangBaju,
-                lingkarPinggul: measurement.lingkarPinggul,
-                lingkarPaha: measurement.lingkarPaha,
-                panjangCelana: measurement.panjangCelana,
-              }),
-            },
-          },
-        }),
+        items: { create: orderItemsCreate },
       },
     });
 

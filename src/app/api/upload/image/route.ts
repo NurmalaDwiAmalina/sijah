@@ -1,14 +1,14 @@
 import { put } from "@vercel/blob";
 import { NextRequest, NextResponse } from "next/server";
-import { requireUser } from "@/lib/auth";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
+// Endpoint ini publik (tanpa login) karena dipakai juga oleh pelanggan saat
+// membuat pesanan dari web katalog untuk mengunggah foto referensi. Tetap
+// dibatasi: hanya gambar (JPG/PNG/WebP) maksimal 5MB.
 export async function POST(req: NextRequest) {
   try {
-    await requireUser();
-
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
